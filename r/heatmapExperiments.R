@@ -1,4 +1,4 @@
-sampleData <- scan("/Users/a_s899/Sasha/Dropbox/code/r/sampleData.csv", what=list("integer","integer"), sep=",", nmax=500)	# this reas them as string
+sampleData <- scan("C:/Users/a_k257/Documents/GitHub/speedProcessing/r/sampleData.csv", what=list("integer","integer"), sep=",", nmax=500)	# this reas them as string
 
 sampleData[[1]][1]
 
@@ -7,7 +7,7 @@ hist(as.integer(sampleData[[1]]), breaks=100, col="grey90", border=NA)
 
 # or
 
-sampleData <- scan("/Users/a_s899/Sasha/Dropbox/code/r/sampleData.csv", what=list(integer(),integer()), sep=",", nmax=500)	# this reads them as ints
+sampleData <- scan("C:/Users/a_k257/Documents/GitHub/speedProcessing/r/sampleData.csv", what=list(integer(),integer()), sep=",", nmax=500)	# this reads them as ints
 
 hist(as.integer(sampleData[[1]]), breaks=100, col="grey90", border=NA)
 
@@ -18,7 +18,7 @@ hist(as.integer(sampleData[[1]]), breaks=100, col="grey90", border=NA)
 # 12+13 = right eye x+y, 27+28 = left eye x+y
 # 8+23 = right+left validity
 
-sampleData <- scan("/Users/a_s899/Sasha/Dropbox/code/r/gazeData.clean.out", what=list(NULL, NULL, NULL, NULL, NULL, NULL, NULL, integer(), NULL, NULL, NULL, numeric(), numeric(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, integer(), NULL, NULL, NULL, numeric(), numeric(), NULL, NULL, NULL, NULL), sep="\t", nmax=400)
+sampleData <- scan("C:/Users/a_k257/Documents/GitHub/speedProcessing/r/gazeData.clean.out", what=list(NULL, NULL, NULL, NULL, NULL, NULL, NULL, integer(), NULL, NULL, NULL, numeric(), numeric(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, integer(), NULL, NULL, NULL, numeric(), numeric(), NULL, NULL, NULL, NULL), sep="\t", nmax=400)
 
 nbins <- 10
 
@@ -43,7 +43,7 @@ image(bins, bins, freq2D, col=topo.colors(max(freq2D)))
 # process "nan":
 # 	"NaN" is considered allowed input for a numeric field, and is parsed in a case-insensitive fashion
 #	NaN itself is a numeric constant of type double
-sampleData <- scan("/Users/a_s899/Sasha/Dropbox/code/r/gazeData.2018.05.08.at.12.13.25.out", sep="\t", nmax=160000, skip=1, what=list(NULL, NULL, NULL, NULL, NULL, NULL, NULL, integer(), NULL, NULL, NULL, numeric(), numeric(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, integer(), NULL, NULL, NULL, numeric(), numeric(), NULL, NULL, NULL, NULL))
+sampleData <- scan("C:/Users/a_k257/Documents/GitHub/speedProcessing/r/gazeData.2018.05.08.at.12.13.25.out", sep="\t", nmax=160000, skip=1, what=list(NULL, NULL, NULL, NULL, NULL, NULL, NULL, integer(), NULL, NULL, NULL, numeric(), numeric(), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, integer(), NULL, NULL, NULL, numeric(), numeric(), NULL, NULL, NULL, NULL))
 
 
 
