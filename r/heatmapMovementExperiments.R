@@ -42,25 +42,77 @@ SpeedBinSize <- speed_log_range[2]/nBins
 
 
 
-bins <- seq(0, 1, length=nBins)
+binsx <- seq(0, dur_log_range[2], length=nBins)
+binsy <- seq(0, speed_log_range[2], length=nBins)
 
 freq2D <- diag(nBins)*0
 
-numRec <- length(filteredData)
+numRec <- nrow(filteredData)
 
 for (i in 1:numRec) {
 
-	speed_log	<- filteredData$sp_log[i];
+	speed_log <- filteredData$sp_log[i];
 	dur_log	<- filteredData$dur_log[i];
 
 	if (speed_log && dur_log) {
 
 		# 
-		xBin <- findInterval(speed_log, bins);
-		yBin <- findInterval(1 - dur_log, bins);
+		yBin <- findInterval(speed_log, binsy);
+		xBin <- findInterval(dur_log, binsx);
 
 		freq2D[xBin, yBin] <- freq2D[xBin, yBin] + 1;
 	}
+}
+
+library(RColorBrewer)
+hex_colors <- c("#CDCDCD","#EBDAE9","#D6C8E5","#C1B7DE","#ADA6D6","#9995CC","#8585C1","#7275B4","#6066A6","#4E5796","#3D4985","#2E3B73","#1F2E60","#12214C")
+
+par(bg="grey90") # needed every time
+image(binsx, binsy, freq2D, zlim=c(1, max(freq2D)), col=brewer.pal(13, "Blues")) # exclude cells with 0 count or just suppress for plotting?
+
+image(binsx, binsy, log(freq2D), col=brewer.pal(9, "Blues"))
+
+image(binsx, binsy, freq2D, zlim=c(1, max(freq2D)), col= hex_colors, breaks = raw_breaks)
+
+hist.data = hist(output.list, 50, plot=F)
+hist.data$counts = log10(hist.data$counts)
+plot(hist.data, ylab='log10(Frequency)')
+
+
+
+xfit <- seq(min(g), max(g), length = 100) 
+yfit <- dnorm(xfit, mean = mean(g), sd = sd(g)) 
+yfit <- yfit * diff(h$mids[1:2]) * length(g) 
+
+lines(xfit, yfit, col = "red", lwd = 2)
+
+
+
+
+
+freq2D <- diag(nBins)*0
+numRec <- length(fullData[[4]])
+
+for (i in 1:numRec) {
+
+	speed <- fullData[[4]][i]
+	dur <- fullData[[6]][i]
+
+
+	if (is.finite(speed) && ((speed >=0) && (dur >=0))) {
+
+		speed_log <- log(speed + 1);
+		dur_log	<- log(dur + 1);
+
+		if (speed_log && dur_log) {
+
+			# 
+			xBin <- findInterval(speed_log, bins);
+			yBin <- findInterval(dur_log, bins);
+
+			freq2D[xBin, yBin] <- freq2D[xBin, yBin] + 1;
+		}
+	}	
 }
 
 library(RColorBrewer)
