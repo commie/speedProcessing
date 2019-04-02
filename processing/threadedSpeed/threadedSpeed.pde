@@ -24,8 +24,8 @@ int mapHeight;
 
 // 1. In setup(), 
 //    a. set size(..), mapWidth and mapHeight to desired size,
-//    b. set filePath to the current size,
-//    c. manually update, if needed, the "lo" and "hi" values for filter controls for speed, time and distance.
+//    b. set filePath to the current file,
+//    c. manually update, if needed, the "lo" and "hi" values for filter controls for speed, duration and distance.
 // 
 // 2. Right below this block, set the desired center point for the stereographic projection and the desired zoom level.
 
@@ -40,7 +40,7 @@ float centerLon = radians(-98.6);
 // float centerLat = radians( 40.6968);  // Manhattan
 // float centerLon = radians(-74.0284);
 
-float zoomScaleFactor = 2.5;  // 1.0 shows the entire hemisphere
+float zoomScaleFactor = 4.0;  // 1.0 shows the entire hemisphere; 4.0 is good for contiguous US; 
 
 
   
@@ -75,14 +75,15 @@ void setup () {
   background(0);
   frameRate(desiredFrameRate);
 
-
+  // colorMode(RGB, 255, 255, 255, 1000);
  
   
   //
   // Thread setup
   //
   
-  String filePath = "C:/Sasha/noBackup/data/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.movement.out";
+  // String filePath = "C:/Sasha/noBackup/data/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.movement.out";
+  String filePath = "C:/Sasha/noBackup/data/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.movementOnly.out";
   
   LineReader lineReader = new LineReader(filePath);
   Thread readerThread = new Thread(lineReader);
@@ -102,9 +103,9 @@ void setup () {
   float controlWidth = 80;
 
   //                                 x                          y                                      width         label      lo hi     min step
-  speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     0, 600,   0,  1);  // MPH
+  speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     0, 800,   0,  1);  // MPH
   timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "minutes", 0, 10080, 0,  10); // minutes
-  distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 3000,  0,  10); // miles
+  distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 25000,  0,  10); // miles
   
   decayControl = new NumberControl(round(controlWidth * 2.1), round(mapHeight - controlWidth * 3.05), controlWidth, "decay", lineDrawer.getDecay(), false, 0.0, 100.0);
   ffControl = new NumberControl(round(controlWidth * 2.1), round(mapHeight - controlWidth * 1.75), controlWidth, "minutes/s", lineDrawer.getMinutesPerSecond(), false, 1.0, 60.0);  
@@ -180,7 +181,7 @@ class LineDrawer implements Runnable {
   private int idxInBatch;            // position in the current batch
   private int batchLength;           // batch size
 
-  private long msPerFrame = 30000;   // 30,000 ms per frame is 15 minutes per second @ 30 FPS (20k is 10', 10k is 5', 2k is 1')
+  private long msPerFrame = 120000;   // 30,000 ms per frame is 15 minutes per second @ 30 FPS (20k is 10', 10k is 5', 2k is 1')
   private long nextFrame = 0;
   
   private Boolean drawing;
@@ -188,12 +189,12 @@ class LineDrawer implements Runnable {
   private Calendar calendar = Calendar.getInstance();
   
   private long recordsDrawn = 0;
-  private long recordsTotal = 80000000;  // estimate
+  private long recordsTotal = 8297398;  // from line count for distributedReader.2.1.twitterCrawler01.2017.12.merged.movementOnly.out
   
   private float hourHandAngle;
   private float minuteHandAngle;
   
-  private int decayRate = 25;    // 255: 12.75 = 5% opacity, 2.55 = 1% opacity
+  private int decayRate = 0;    // 255: 12.75 or 13 = 5% opacity, 2.55 = 1% opacity
   
   private int timeLo = 0;
   private int speedLo = 0;
@@ -317,7 +318,12 @@ class LineDrawer implements Runnable {
             
             screenDist = dist(x1, y1, x2, y2);
             
-            transp = 250 - sqrt(screenDist * 50);
+            // set line opacity as a function of its length
+            // transp = 250 - sqrt(screenDist * 50);
+
+            // set fixed line opacity
+            transp = 1;
+            
             stroke(255, transp);
             strokeWeight(1);
             
