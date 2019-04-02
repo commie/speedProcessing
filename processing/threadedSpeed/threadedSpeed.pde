@@ -40,7 +40,10 @@ float centerLon = radians(-98.6);
 // float centerLat = radians( 40.6968);  // Manhattan
 // float centerLon = radians(-74.0284);
 
-float zoomScaleFactor = 4.0;  // 1.0 shows the entire hemisphere; 4.0 is good for contiguous US; 
+// float centerLat = radians( 41.8369);  // Chicago
+// float centerLon = radians(-87.6847);
+
+float zoomScaleFactor = 4.0;  // 1.0 shows the entire hemisphere; 4.0 is good for contiguous US; tried 120 for Chicago; 600 for Manhattan
 
 
   
@@ -103,9 +106,9 @@ void setup () {
   float controlWidth = 80;
 
   //                                 x                          y                                      width         label      lo hi     min step
-  speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     0, 800,   0,  1);  // MPH
-  timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "minutes", 0, 10080, 0,  10); // minutes
-  distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 25000,  0,  10); // miles
+  speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     70, 800,   0,  1);      // MPH
+  timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "seconds", 3600, 604800, 0,  10);  // seconds; week is 604800, day is 86400, 12 hrs is 43200, 1 hour is 3600
+  distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 12500, 0,  10);      // miles; 12,500 is half the globe
   
   decayControl = new NumberControl(round(controlWidth * 2.1), round(mapHeight - controlWidth * 3.05), controlWidth, "decay", lineDrawer.getDecay(), false, 0.0, 100.0);
   ffControl = new NumberControl(round(controlWidth * 2.1), round(mapHeight - controlWidth * 1.75), controlWidth, "minutes/s", lineDrawer.getMinutesPerSecond(), false, 1.0, 60.0);  
@@ -312,17 +315,17 @@ class LineDrawer implements Runnable {
           y2 = (y2 - 0.5) * mapHeight * zoomScaleFactor + mapHeight * 0.5;
 
 
-          if (timeLo <= currDuration && currDuration < timeHi &&
-            distLo <= currDistance && currDistance < distHi && 
-            speedLo <= currSpeed && currSpeed < speedHi ) {
+          if (timeLo <= currDuration & currDuration < timeHi &
+            distLo <= currDistance & currDistance < distHi & 
+            speedLo <= currSpeed & currSpeed < speedHi ) {
             
             screenDist = dist(x1, y1, x2, y2);
             
             // set line opacity as a function of its length
-            // transp = 250 - sqrt(screenDist * 50);
+            transp = 250 - sqrt(screenDist * 50);
 
             // set fixed line opacity
-            transp = 1;
+            // transp = 50;
             
             stroke(255, transp);
             strokeWeight(1);
