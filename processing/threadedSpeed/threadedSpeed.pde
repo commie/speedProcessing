@@ -145,8 +145,13 @@ void setup () {
   //timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "minutes", 0, 604800, 0,  10); // sec
   //distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 13000,  0,  10); // miles
   
-  //class 7 "not too fast"  >75mph <650mph >148sec <3600 sec
-  speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     75, 650,   0,  1);      // MPH
+  ////class 7 "not too fast"  >75mph <650mph >148sec <3600 sec
+  //speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     75, 650,   0,  1);      // MPH
+  //timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "minutes", 148, 3600, 0,  10); // sec
+  //distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 13000,  0,  10); // miles
+  
+  //class 8 "too fast"  >650mph >148sec <3600 sec
+  speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     650, 15000000,   0,  1);      // MPH
   timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "minutes", 148, 3600, 0,  10); // sec
   distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 13000,  0,  10); // miles
   
