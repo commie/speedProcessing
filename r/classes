@@ -1,8 +1,10 @@
 classes
-1 <60sec <0.4mile 
-2 <7200sec < 0.4 mile
-3 >36000sec <10k miles
-4 >36000sec <30 mile
-5 >150s <7200s >3ile <63mile
-6 >150s <7200s >63 mile
-7 <400s >150mile
+0 <2hr <1mile  twitting still
+1 >22000 sec <31 mile daily life
+2 >15mph < 75mph >3mile  < 255 mile car-like
+3 >75mph < 650mph >255mile air travel + late report
+4 >75mph >148sec < 3600 sec  fast
+5 <148s >1200mile fast n furious
+6 <650mph
+
+
