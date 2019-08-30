@@ -695,7 +695,7 @@ logParser.logMovement = function (parsedJson, uniqueUsers) {
                 lat2 = parsedJson.coordinates.coordinates[1],
                 lon2 = parsedJson.coordinates.coordinates[0];
 
-            var cleanText = parsedJson.text.replace(/\n|\t/g, " ");
+            var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
 
             var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
             var dur  = (time2 - time1) / 1000.0;                                        // s
