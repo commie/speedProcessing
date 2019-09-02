@@ -42,7 +42,9 @@ logParser.speedStrCount     = 0;
 
 // big crawler
 // logParser.filePath = '/Volumes/SanDisk64/distributedReader.2.0.minerThorin.2015.10.28.out';
-logParser.filePath = '/Volumes/Tera/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+// logParser.filePath = '/Volumes/Tera/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
 // logParser.filePath = "/Users/a_s899/Sasha/noBackup/bigData/experiment.solitude.out";
@@ -141,7 +143,8 @@ logParser.readData = function (fileDesc) {
         sortedLocations = [],
         coordCount = 0,
         profileLocationCount = 0,
-        matchingCount = 0;
+        matchingCount = 0,
+        rawLocationCount = 0;
 
     fileReaderLoop:
     while (bytesRead = fs.readSync(fileDesc, dataBuffer, 0, dataBuffer.length, filePos)) {
@@ -282,6 +285,7 @@ logParser.readData = function (fileDesc) {
                         }
 
                         // process unique tweets
+                        rawLocationCount++;
 
                         var coordArray = parsedJson.coordinates.coordinates;
                         var locationKey = coordArray[0] + " " + coordArray[1];
@@ -624,7 +628,7 @@ logParser.readData = function (fileDesc) {
     console.log("Duplicate locations are now printed to stderr ...");
 
     var duplicatesOnly = [];
-    var seenLocationCount = 0;
+    var hashLocationCount = 0;
 
     for (var k = 0; k < hashesLen; k++) {
 
@@ -634,7 +638,7 @@ logParser.readData = function (fileDesc) {
 
         for (var locationKey in currentHash) {
 
-            seenLocationCount += currentHash[locationKey];
+            hashLocationCount += currentHash[locationKey];
 
             if (currentHash[locationKey] > 1) {
 
@@ -676,7 +680,7 @@ logParser.readData = function (fileDesc) {
 
     console.error(JSON.stringify(duplicatesOnly));
 
-    console.log("Seen " + seenLocationCount + " locations.");
+    console.log("Seen " + rawLocationCount + " locations in the original file, processed " + hashLocationCount + " locations when looking for duplicates.");
 
     console.log("... done.");
     console.log();

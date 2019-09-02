@@ -1,0 +1,12 @@
+// duplicate location extraction on Aug 30 ///////////////////////////////
+
+
+7:28:15 PM Done reading file.
+7:28:15 PM A total of 80163972 records parsed, 80163972 valid tweets found.
+7:28:15 PM Last tweet # is 947618361709678592
+
+Duplicate locations are now printed to stderr ...
+Seen 9207960 locations in the original file, processed 9207960 locations when looking for duplicates.
+... done.
+
+
