@@ -1254,7 +1254,7 @@ logParser.isDuplicate = function (duplicateHashes, tweetIdString, parsedTweets) 
     var maxHashLen          = 1000000,
         maxHashNum          = 90; // this sets max tweet count to about 90,000,000
 
-    if (parsedTweets % 100000) { 
+    if (!(parsedTweets % 100000)) { 
 
         // every 100,000 tweets, check if the current hash size exceeded max hash length.
         if (Object.keys(duplicateHashes[hashesLen - 1]).length > maxHashLen) {
