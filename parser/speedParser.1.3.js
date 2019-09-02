@@ -2,7 +2,9 @@
 
 var fs          = require('fs');
 // var mongo       = require('mongodb');
-var duplicates;  
+var duplicates;
+
+var duplicateLocations = require("./duplicateLocations.02.js").duplicateLocations;
 
 var logParser = {};
 
@@ -42,26 +44,16 @@ logParser.speedStrCount     = 0;
 
 // big crawler
 // logParser.filePath = '/Volumes/SanDisk64/distributedReader.2.0.minerThorin.2015.10.28.out';
-logParser.filePath = '/Volumes/Tera/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+// logParser.filePath = '/Volumes/Tera/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
 // logParser.filePath = "/Users/a_s899/Sasha/noBackup/bigData/experiment.solitude.out";
 
-
-logParser.job = {};
-    "separateUniqueRecords": {
-        
-        "do": [
-            logParser.separateUniqueRecords
-        ],
-
-        "after": [
-            functionlogParser.genericEnd
-        ]
-    }
-};
-
-logParser.job = logParser.jobList.separateUniqueRecords;
+uniqueLocationPrinter   = batchPrinterFactory(logParser.filePath.slice(0, -4) + ".uniqueLoc.out");
+dupLocationPrinter      = batchPrinterFactory(logParser.filePath.slice(0, -4) + ".dupLoc.out");
+userLocStatPrinter      = batchPrinterFactory(logParser.filePath.slice(0, -4) + ".userLocStat.out");
 
 
 logParser.init = function () {
@@ -128,9 +120,12 @@ logParser.readData = function (fileDesc) {
         numTweets,
         parsedJson;
 
-    // locating duplicates
+    // location duplicates
     var duplicateHashes     = [{}],
         hashesLen           = duplicateHashes.length;
+
+    // tweet ID duplicates
+    var duplicateIdHashes   = [{}];
 
     // sorting tweets
     var duplicatesRemoved   = 0;
@@ -150,31 +145,12 @@ logParser.readData = function (fileDesc) {
         latestTimestamp = 0,
         tweetDelays = {},
         locationHash = {},
-        locationHashes = [{}],
+        // locationHashes = [{}],
         sortedLocations = [],
         coordCount = 0,
         profileLocationCount = 0,
-        matchingCount = 0;
-
-
-    // set up the current job
-    
-    this.job.do     = this.separateUniqueRecords;
-    
-    this.job.after  = [
-        
-        // regular wrap-up
-        function () {
-            this.genericEnd(lastTweetId);
-        },
-
-        // print per-user statistics on unique location mentions
-        this.printUniqueStats
-    ];
-
-
-
-    // parse file
+        matchingCount = 0,
+        rawLocationCount = 0;
 
     fileReaderLoop:
     while (bytesRead = fs.readSync(fileDesc, dataBuffer, 0, dataBuffer.length, filePos)) {
@@ -229,10 +205,6 @@ logParser.readData = function (fileDesc) {
 
                     tweetIdString   = parsedJson.id_str;
                     lastTweetId     = tweetIdString;
-
-
-                    // x. Run the current job
-                    this.job.do();
 
 
                     // 3. Locate duplicates
@@ -312,8 +284,18 @@ logParser.readData = function (fileDesc) {
 
                     // if (parsedJson.coordinates) {
 
+                    //     // discard duplicate tweets
+                    //     if (logParser.isDuplicate(duplicateIdHashes, tweetIdString, this.parsedTweets)) {
+
+                    //         continue;
+                    //     }
+
+                    //     // process unique tweets
+                    //     rawLocationCount++;
+
                     //     var coordArray = parsedJson.coordinates.coordinates;
                     //     var locationKey = coordArray[0] + " " + coordArray[1];
+
                     //     // var placeName = null;
                     //     // if (parsedJson.place) {
                     //     //     placeName = parsedJson.place.name;
@@ -326,7 +308,7 @@ logParser.readData = function (fileDesc) {
                     //     //     continue;
                     //     // }
 
-                    //     // Process duplicates
+                    //     // Process duplicate locations
                     //     for (var k = 0; k < hashesLen; k++) {
 
                     //         var currentHash = duplicateHashes[k];
@@ -542,7 +524,7 @@ logParser.readData = function (fileDesc) {
 
 
                     // 14. Separate unique records
-                    // logParser.separateUniqueRecords(parsedJson);
+                    logParser.separateUniqueRecords(parsedJson, duplicateLocations, uniqueUsers);
                     
                     
 
@@ -557,34 +539,36 @@ logParser.readData = function (fileDesc) {
 
                 
 
-                // Rotate location hashes (broken)
-                if (!(this.parsedTweets % 100000)) { 
+                // Rotate location hashes
+                // if (!(this.parsedTweets % 100000)) { 
 
-                    // This guarantees that no hash will be bigger than 100,000
-                    // records, but doesn't guarantee that they will be of any
-                    // particular size.
+                //     // This guarantees that no hash will be bigger than 100,000
+                //     // records, but doesn't guarantee that they will be of any
+                //     // particular size.
 
-                    if (Object.keys(locationHashes[hashesLen - 1]).length > 1000000) {
+                //     // console.log("Location hash size check triggered, " + )
 
-                        hashesLen = locationHashes.push({});
+                //     if (Object.keys(duplicateHashes[hashesLen - 1]).length > 1000000) {
 
-                        // if (hashesLen > 5) {
+                //         hashesLen = duplicateHashes.push({});
 
-                        //     var hashToTrim = locationHashes[hashesLen - 1 - 10];
-                        //     var trimmedHash = {};
+                //         // if (hashesLen > 5) {
 
-                        //     for (var key in hashToTrim) {
-                        //         if (hashToTrim[key] > 1) {
-                        //             trimmedHash[key] = hashToTrim[key];
-                        //         }
-                        //     }
+                //         //     var hashToTrim = locationHashes[hashesLen - 1 - 10];
+                //         //     var trimmedHash = {};
 
-                        //     locationHashes[hashesLen - 1 - 10] = trimmedHash;
-                        // }
+                //         //     for (var key in hashToTrim) {
+                //         //         if (hashToTrim[key] > 1) {
+                //         //             trimmedHash[key] = hashToTrim[key];
+                //         //         }
+                //         //     }
 
-                        console.log((new Date).toLocaleTimeString() + " [SERVER] " + "New location hash added, " + hashesLen + " total.");
-                    }
-                }
+                //         //     locationHashes[hashesLen - 1 - 10] = trimmedHash;
+                //         // }
+
+                //         console.log((new Date).toLocaleTimeString() + " [SERVER] " + "New location hash added, " + hashesLen + " total.");
+                //     }
+                // }
 
             }
 
@@ -617,8 +601,6 @@ logParser.readData = function (fileDesc) {
     console.log((new Date).toLocaleTimeString() + " " + "Last tweet # is " + lastTweetId);
     console.log();
 
-
-
     // 3. Log duplicates to file
     // logParser.printDuplicates(duplicateHashes);
 
@@ -627,6 +609,15 @@ logParser.readData = function (fileDesc) {
 
     // 9. Flush movement records buffer
     // batchPrinter.flush();
+
+    
+    // x. Tally up user statistics for unique locations + flush buffers
+
+    logParser.tallyUserLocationDupStatistics(uniqueUsers);
+
+    uniqueLocationPrinter.flush();
+    dupLocationPrinter.flush();
+    userLocStatPrinter.flush();
     
 
 
@@ -649,65 +640,65 @@ logParser.readData = function (fileDesc) {
 
 
 
-    console.log("Duplicate locations are now printed to stderr ...");
+    // console.log("Duplicate locations are now printed to stderr ...");
 
-    var duplicatesOnly = [];
-    var seenLocationCount = 0;
+    // var duplicatesOnly = [];
+    // var hashLocationCount = 0;
 
-    for (var k = 0; k < hashesLen; k++) {
+    // for (var k = 0; k < hashesLen; k++) {
 
-        var currentHash = duplicateHashes[k];
+    //     var currentHash = duplicateHashes[k];
 
-        duplicatesOnly.push({});
+    //     duplicatesOnly.push({});
 
-        for (var locationKey in currentHash) {
+    //     for (var locationKey in currentHash) {
 
-            seenLocationCount += currentHash[locationKey];
+    //         hashLocationCount += currentHash[locationKey];
 
-            if (currentHash[locationKey] > 1) {
+    //         if (currentHash[locationKey] > 1) {
 
-                duplicatesOnly[k][locationKey] = currentHash[locationKey];
-            };
-        };
+    //             duplicatesOnly[k][locationKey] = currentHash[locationKey];
+    //         };
+    //     };
 
 
-        // for (var locationKey in currentHash) {
+    //     // for (var locationKey in currentHash) {
 
-        //     if (currentHash[locationKey].count > 1) {
+    //     //     if (currentHash[locationKey].count > 1) {
 
-        //         var outputString = locationKey + "|" + currentHash[locationKey].count + "|" + Object.keys(currentHash[locationKey].names).length + "|";
+    //     //         var outputString = locationKey + "|" + currentHash[locationKey].count + "|" + Object.keys(currentHash[locationKey].names).length + "|";
 
-        //         var countHash = {};
+    //     //         var countHash = {};
 
-        //         for (var placeKey in currentHash[locationKey].names) {
+    //     //         for (var placeKey in currentHash[locationKey].names) {
 
-        //             // outputString += "\"" + placeKey + "\" - " + currentHash[locationKey].names[placeKey]  + ", ";
+    //     //             // outputString += "\"" + placeKey + "\" - " + currentHash[locationKey].names[placeKey]  + ", ";
 
-        //             if (countHash[currentHash[locationKey].names[placeKey]]) {
-        //                 countHash[currentHash[locationKey].names[placeKey]]++;
-        //             } else {
-        //                 countHash[currentHash[locationKey].names[placeKey]] = 1;
-        //             }
-        //         }
+    //     //             if (countHash[currentHash[locationKey].names[placeKey]]) {
+    //     //                 countHash[currentHash[locationKey].names[placeKey]]++;
+    //     //             } else {
+    //     //                 countHash[currentHash[locationKey].names[placeKey]] = 1;
+    //     //             }
+    //     //         }
 
-        //         outputString += "|";
+    //     //         outputString += "|";
 
-        //         for (var countKey in countHash) {
-        //             outputString += countKey + ": " + countHash[countKey] + ", ";
-        //         }
+    //     //         for (var countKey in countHash) {
+    //     //             outputString += countKey + ": " + countHash[countKey] + ", ";
+    //     //         }
                 
-        //         console.error(outputString);
-        //     }
-        // }
+    //     //         console.error(outputString);
+    //     //     }
+    //     // }
 
-    };
+    // };
 
-    console.error(JSON.stringify(duplicatesOnly));
+    // console.error(JSON.stringify(duplicatesOnly));
 
-    console.log("Seen " + seenLocationCount + " locations.");
+    // console.log("Seen " + rawLocationCount + " locations in the original file, processed " + hashLocationCount + " locations when looking for duplicates.");
 
-    console.log("... done.");
-    console.log();
+    // console.log("... done.");
+    // console.log();
 
 
     // sortedLocations.sort(function (a, b) {
@@ -744,147 +735,76 @@ logParser.readData = function (fileDesc) {
 }
 
 
-logParser.genericEnd = function (lastTweetId) {
-
-    console.log((new Date).toLocaleTimeString() + " " + "Done reading file.");
-    console.log((new Date).toLocaleTimeString() + " " + "A total of " + logParser.parsedTweets + " records parsed, " + logParser.validCount + " valid tweets found.")
-    console.log((new Date).toLocaleTimeString() + " " + "Last tweet # is " + lastTweetId);
-    
-    console.log();
-};
-
-logParser.printUniqueStats = function () {
-
-    // ...
-};
-
-
-logParser.separateUniqueRecords = function (parsedJson) {
+logParser.separateUniqueRecords = function (parsedJson, duplicateLocations, uniqueUsers) {
 
     if (parsedJson.coordinates) {
 
-        var matchingUser = uniqueUsers[userId];
+        var tweetString = JSON.stringify(parsedJson) + ",\n";
 
-        if (matchingUser) {
+        // find matching user for record-keeping
 
-            // Check for duplicates
+        var userId = parsedJson.user.id_str,
+            matchingUser = uniqueUsers[userId];
 
-            if (matchingUser.twId === parsedJson.id_str) {
-                return;
-            }
+        if (!matchingUser) {
 
+            // create user movement record
 
-            // Calculate distance, duration and speed
+            matchingUser = {
+                userId:             parsedJson.user.id_str,
+                userName:           parsedJson.user.screen_name, 
+                dupLocCount:        0,
+                uniqueLocCount:     0
+            };
 
-            var time1 = matchingUser.time,
-                time2 = Date.parse(parsedJson.created_at);// - 18000000;           // UTC - 5 hours (18,000,000 ms)
+            uniqueUsers[userId] = matchingUser;
+        }
 
-            var lat1 = matchingUser.lat,
-                lon1 = matchingUser.lon,
-                lat2 = parsedJson.coordinates.coordinates[1],
-                lon2 = parsedJson.coordinates.coordinates[0];
+        // check if the current location is a duplicate
 
-            var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
+        var coordArray  = parsedJson.coordinates.coordinates,
+            locationKey = coordArray[0] + " " + coordArray[1];
 
-            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
-            var dur  = (time2 - time1) / 1000.0;                                        // s
-            // var speed = Math.round(dist / dur);                                      // m/s
-            var speed = dist / (dur / 3600.0);                                          // MPH
+        var isDuplicate = duplicateLocations[locationKey];
 
-            dist  = dist.toFixed(6);
-            speed = speed.toFixed(6);
+        
 
+        if (isDuplicate) {
 
-            // Extract additional variables
-            var hashtags = "";
-            parsedJson.entities.hashtags.forEach(function (currentHashtag) {
-                hashtags += currentHashtag.text + " ";
-            });
+            // update user statistics
+            matchingUser.dupLocCount++;
 
-            var media = "";
-            if (parsedJson.entities.media && parsedJson.entities.media[0]) {
-                media = parsedJson.entities.media[0].media_url;
-            }
-
-            var userMention = "";
-            if (parsedJson.entities.user_mentions && parsedJson.entities.user_mentions[0]) {
-                userMention = true;
-            }
-
-
-            // Round them off
-
-            // dist  = Math.ceil(dist);
-            // speed = Math.ceil(speed);
-            
-
-            // Check for unusual speed records
-
-            var name = matchingUser.name,
-                msg = matchingUser.msg;
-
-            // if (speed == Infinity) {
-                
-            //     // infinity means division by 0 - no time elapsed between the two tweets
-            //     console.error("i|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
-
-            // } else if (isNaN(speed)) {
-                
-            //     console.error("n|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
-
-            // } else if (speed === 0) {
-
-            //     // 0 speeds mean 0 distance - no movement between the two tweets
-            //     console.error("z|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
-
-            // } else {
-                
-            //     // Log movement record
-            //     // console.error(time2 + " " + dur + " " + dist + " " + speed + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2); // time1 + " " + time2 + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2
-
-            //     var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + cleanText + "\n";
-            //     batchPrinter.print(movementString);
-            // }
-
-            // var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + userMention + "\t" + media + "\t" + hashtags + "\t" + cleanText + "\n";
-            var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
-            batchPrinter.print(movementString);
-
-            
-
-            // if (uniqueSpeeds[speed]) {
-            //     uniqueSpeeds[speed]++;
-            // } else {
-            //     uniqueSpeeds[speed] = 1;
-            // }
-
-            // if (speed > 2.5) {
-            //     console.log((new Date).toLocaleTimeString() + " [SERVER] " + "[SPEED] " + speed + " m/s");
-            // }
-
-            // Update user movement record
-            matchingUser.time    = time2;
-            matchingUser.lat     = lat2;
-            matchingUser.lon     = lon2;
-            matchingUser.msg     = cleanText;
+            // push tweet to duplicate location file
+            dupLocationPrinter.print(tweetString);
 
         } else {
 
-            // Create user movement record
+            // update user statistics
+            matchingUser.uniqueLocCount++;
 
-            uniqueUsers[userId] = {
-                twId:   parsedJson.id_str,
-                time:   Date.parse(parsedJson.created_at),// - 18000000,   // UTC - 5 hours (18,000,000 ms)
-                lat:    parsedJson.coordinates.coordinates[1],
-                lon:    parsedJson.coordinates.coordinates[0],
-                msg:    "", //cleanText,
-                name:   parsedJson.user.screen_name.replace(/\n|\t/g, " ")
-            };
+            // push tweet to unique location file
+            uniqueLocationPrinter.print(tweetString);
         }
 
     }
 
-}
+};
+
+
+logParser.tallyUserLocationDupStatistics = function (uniqueUsers) {
+
+    for (var userKey in uniqueUsers) {
+
+        var currentUser = uniqueUsers[userKey];
+
+        currentUser.totalLocCount   = currentUser.dupLocCount + currentUser.uniqueLocCount;
+        currentUser.uniqueLocPct    = currentUser.uniqueLocCount / currentUser.totalLocCount;
+
+        var userStatString = currentUser.userId + "\t" + currentUser.userName + "\t" + currentUser.dupLocCount + "\t" + currentUser.uniqueLocCount + "\t" + currentUser.totalLocCount + "\t" + currentUser.uniqueLocPct + "\n";
+        
+        userLocStatPrinter(userStatString);
+    }
+};
 
 
 logParser.logMovement = function (parsedJson, uniqueUsers) {
@@ -1260,6 +1180,53 @@ logParser.flushSortingBuffers = function (sortedTweets, bufferedTweets, discardC
     console.log("Skipped a total of " + duplicatesRemoved + " tweets as duplicate.");
     console.log("Wrote a total of " + logParser.tweetsDumped + " tweets to the sorted file.");
 }
+
+
+logParser.isDuplicate = function (duplicateHashes, tweetIdString, parsedTweets) {
+
+    var isDuplicate = false;
+
+    var hashesLen = duplicateHashes.length,
+        currentHash,
+        k;
+
+    // Check every hash for a match with current tweet id
+    for (k = 0; k < hashesLen; k++) {
+
+        currentHash = duplicateHashes[k];
+
+        if (currentHash[tweetIdString]) {
+
+            isDuplicate = true;
+            break;
+
+        } else if (k == hashesLen - 1) {
+
+            // if no matches found, add this tweet id to the last hash
+            currentHash[tweetIdString] = true;
+        }
+    }
+
+
+    // Add new hash when current is full
+
+    var maxHashLen          = 1000000,
+        maxHashNum          = 90; // this sets max tweet count to about 90,000,000
+
+    if (!(parsedTweets % 100000)) { 
+
+        // every 100,000 tweets, check if the current hash size exceeded max hash length.
+        if (Object.keys(duplicateHashes[hashesLen - 1]).length > maxHashLen) {
+
+            hashesLen = duplicateHashes.push({});
+
+            console.log((new Date).toLocaleTimeString() + " " + "New tweet ID hash added, " + hashesLen + " total.");
+        }
+    }
+
+    return isDuplicate;
+};
+
 
 
 logParser.locateDuplicates = function (duplicateHashes, tweetIdString) {
@@ -1945,6 +1912,57 @@ var batchPrinter = {
     }
 
 };
+
+
+var batchPrinterFactory = function (outputFilePath) {
+
+    var batchPrinter = {
+
+        stringCount:        0,
+        maxCount:           10000, 
+        outputString:       "",
+        fileName:           outputFilePath,
+
+        print:  function (newString) {
+
+            if (this.stringCount < this.maxCount) {
+
+                this.outputString += newString;
+                this.stringCount++;
+
+                // keep count of total number of tweets written to sorted file
+                logParser.tweetsDumped++;
+
+            } else {
+
+                // dump x tweets at a time
+                fs.appendFileSync(this.fileName, this.outputString);
+                // console.log("dumped " + stringCount + " tweets");
+
+                // start a new output string
+                this.outputString = newString;
+                this.stringCount = 1;
+
+                logParser.tweetsDumped++;
+            }
+
+        },
+
+        flush:  function () {
+
+            fs.appendFileSync(this.fileName, this.outputString);
+
+            // just in case
+            this.outputString = "";
+            this.stringCount = 0;
+        }
+
+    };
+
+    return batchPrinter;
+};
+
+
 
 
 //
