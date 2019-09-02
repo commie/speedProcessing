@@ -2,7 +2,7 @@
 
 var fs          = require('fs');
 // var mongo       = require('mongodb');
-var duplicates;
+var duplicates;  
 
 var logParser = {};
 
@@ -49,11 +49,6 @@ logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twit
 
 // logParser.filePath = "/Users/a_s899/Sasha/noBackup/bigData/experiment.solitude.out";
 
-var duplicateLocations,
-    uniqueLocationPrinter,
-    dupLocationPrinter,
-    userLocStatPrinter;
-
 
 logParser.init = function () {
 
@@ -74,14 +69,6 @@ logParser.init = function () {
     // duplicates = require(duplicateFileName).duplicates;
 
     batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".movement.out";
-
-    //
-
-    duplicateLocations      = require("./duplicateLocations.02.js").duplicateLocations;
-
-    uniqueLocationPrinter   = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".uniqueLoc.out");
-    dupLocationPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".dupLoc.out");
-    userLocStatPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".userLocStat.out");
     
 
     // Read through data
@@ -289,76 +276,76 @@ logParser.readData = function (fileDesc) {
 
                     // var userId = parsedJson.user.id;
 
-                    // if (parsedJson.coordinates) {
+                    if (parsedJson.coordinates) {
 
-                    //     // discard duplicate tweets
-                    //     if (logParser.isDuplicate(duplicateIdHashes, tweetIdString, this.parsedTweets)) {
+                        // discard duplicate tweets
+                        if (logParser.isDuplicate(duplicateIdHashes, tweetIdString, this.parsedTweets)) {
 
-                    //         continue;
-                    //     }
+                            continue;
+                        }
 
-                    //     // process unique tweets
-                    //     rawLocationCount++;
+                        // process unique tweets
+                        rawLocationCount++;
 
-                    //     var coordArray = parsedJson.coordinates.coordinates;
-                    //     var locationKey = coordArray[0] + " " + coordArray[1];
+                        var coordArray = parsedJson.coordinates.coordinates;
+                        var locationKey = coordArray[0] + " " + coordArray[1];
 
-                    //     // var placeName = null;
-                    //     // if (parsedJson.place) {
-                    //     //     placeName = parsedJson.place.name;
-                    //     // }
+                        // var placeName = null;
+                        // if (parsedJson.place) {
+                        //     placeName = parsedJson.place.name;
+                        // }
 
-                    //     // Run a bounding box check
-                    //     // if (coordArray[0] < -77.892466 || coordArray[0] > -77.835732 ||
-                    //     //     coordArray[1] <  40.769687 || coordArray[1] >  40.805494) {
+                        // Run a bounding box check
+                        // if (coordArray[0] < -77.892466 || coordArray[0] > -77.835732 ||
+                        //     coordArray[1] <  40.769687 || coordArray[1] >  40.805494) {
 
-                    //     //     continue;
-                    //     // }
+                        //     continue;
+                        // }
 
-                    //     // Process duplicate locations
-                    //     for (var k = 0; k < hashesLen; k++) {
+                        // Process duplicate locations
+                        for (var k = 0; k < hashesLen; k++) {
 
-                    //         var currentHash = duplicateHashes[k];
-                    //         var currentLocation = currentHash[locationKey];
+                            var currentHash = duplicateHashes[k];
+                            var currentLocation = currentHash[locationKey];
 
-                    //         if (currentLocation) {
+                            if (currentLocation) {
 
-                    //             //console.log("Duplicate detected");
+                                //console.log("Duplicate detected");
 
-                    //             // currentLocation.count++;
-                    //             currentHash[locationKey]++;
+                                // currentLocation.count++;
+                                currentHash[locationKey]++;
 
-                    //             // if (currentLocation.names[placeName]){
-                    //             //     currentLocation.names[placeName]++;
-                    //             // } else {
-                    //             //     currentLocation.names[placeName] = 1;
-                    //             // }
+                                // if (currentLocation.names[placeName]){
+                                //     currentLocation.names[placeName]++;
+                                // } else {
+                                //     currentLocation.names[placeName] = 1;
+                                // }
 
-                    //             // if (currentLocation.names[userId]){
-                    //             //     currentLocation.names[userId]++;
-                    //             // } else {
-                    //             //     currentLocation.names[userId] = 1;
-                    //             // }
+                                // if (currentLocation.names[userId]){
+                                //     currentLocation.names[userId]++;
+                                // } else {
+                                //     currentLocation.names[userId] = 1;
+                                // }
 
-                    //             break;
+                                break;
 
-                    //         } else if (k == hashesLen - 1) {
+                            } else if (k == hashesLen - 1) {
 
-                    //             currentLocation = 1;
+                                currentLocation = 1;
 
-                    //             // currentLocation = {
-                    //             //     count: 1,
-                    //             //     names: {}
-                    //             // };
+                                // currentLocation = {
+                                //     count: 1,
+                                //     names: {}
+                                // };
                                 
-                    //             // currentLocation.names[placeName] = 1;
-                    //             // currentLocation.names[userId] = 1;
+                                // currentLocation.names[placeName] = 1;
+                                // currentLocation.names[userId] = 1;
 
-                    //             currentHash[locationKey] = currentLocation;
-                    //         }
-                    //     }
+                                currentHash[locationKey] = currentLocation;
+                            }
+                        }
                         
-                    // }
+                    }
 
 
                     // 7.1 Collect user IDs
@@ -531,7 +518,7 @@ logParser.readData = function (fileDesc) {
 
 
                     // 14. Separate unique records
-                    logParser.separateUniqueRecords(parsedJson, duplicateLocations, uniqueUsers);
+                    // logParser.separateUniqueRecords(parsedJson);
                     
                     
 
@@ -547,35 +534,35 @@ logParser.readData = function (fileDesc) {
                 
 
                 // Rotate location hashes
-                // if (!(this.parsedTweets % 100000)) { 
+                if (!(this.parsedTweets % 100000)) { 
 
-                //     // This guarantees that no hash will be bigger than 100,000
-                //     // records, but doesn't guarantee that they will be of any
-                //     // particular size.
+                    // This guarantees that no hash will be bigger than 100,000
+                    // records, but doesn't guarantee that they will be of any
+                    // particular size.
 
-                //     // console.log("Location hash size check triggered, " + )
+                    // console.log("Location hash size check triggered, " + )
 
-                //     if (Object.keys(duplicateHashes[hashesLen - 1]).length > 1000000) {
+                    if (Object.keys(duplicateHashes[hashesLen - 1]).length > 1000000) {
 
-                //         hashesLen = duplicateHashes.push({});
+                        hashesLen = duplicateHashes.push({});
 
-                //         // if (hashesLen > 5) {
+                        // if (hashesLen > 5) {
 
-                //         //     var hashToTrim = locationHashes[hashesLen - 1 - 10];
-                //         //     var trimmedHash = {};
+                        //     var hashToTrim = locationHashes[hashesLen - 1 - 10];
+                        //     var trimmedHash = {};
 
-                //         //     for (var key in hashToTrim) {
-                //         //         if (hashToTrim[key] > 1) {
-                //         //             trimmedHash[key] = hashToTrim[key];
-                //         //         }
-                //         //     }
+                        //     for (var key in hashToTrim) {
+                        //         if (hashToTrim[key] > 1) {
+                        //             trimmedHash[key] = hashToTrim[key];
+                        //         }
+                        //     }
 
-                //         //     locationHashes[hashesLen - 1 - 10] = trimmedHash;
-                //         // }
+                        //     locationHashes[hashesLen - 1 - 10] = trimmedHash;
+                        // }
 
-                //         console.log((new Date).toLocaleTimeString() + " [SERVER] " + "New location hash added, " + hashesLen + " total.");
-                //     }
-                // }
+                        console.log((new Date).toLocaleTimeString() + " [SERVER] " + "New location hash added, " + hashesLen + " total.");
+                    }
+                }
 
             }
 
@@ -616,15 +603,6 @@ logParser.readData = function (fileDesc) {
 
     // 9. Flush movement records buffer
     // batchPrinter.flush();
-
-    
-    // x. Tally up user statistics for unique locations + flush buffers
-
-    logParser.tallyUserLocationDupStatistics(uniqueUsers);
-
-    uniqueLocationPrinter.flush();
-    dupLocationPrinter.flush();
-    userLocStatPrinter.flush();
     
 
 
@@ -647,65 +625,65 @@ logParser.readData = function (fileDesc) {
 
 
 
-    // console.log("Duplicate locations are now printed to stderr ...");
+    console.log("Duplicate locations are now printed to stderr ...");
 
-    // var duplicatesOnly = [];
-    // var hashLocationCount = 0;
+    var duplicatesOnly = [];
+    var hashLocationCount = 0;
 
-    // for (var k = 0; k < hashesLen; k++) {
+    for (var k = 0; k < hashesLen; k++) {
 
-    //     var currentHash = duplicateHashes[k];
+        var currentHash = duplicateHashes[k];
 
-    //     duplicatesOnly.push({});
+        duplicatesOnly.push({});
 
-    //     for (var locationKey in currentHash) {
+        for (var locationKey in currentHash) {
 
-    //         hashLocationCount += currentHash[locationKey];
+            hashLocationCount += currentHash[locationKey];
 
-    //         if (currentHash[locationKey] > 1) {
+            if (currentHash[locationKey] > 1) {
 
-    //             duplicatesOnly[k][locationKey] = currentHash[locationKey];
-    //         };
-    //     };
+                duplicatesOnly[k][locationKey] = currentHash[locationKey];
+            };
+        };
 
 
-    //     // for (var locationKey in currentHash) {
+        // for (var locationKey in currentHash) {
 
-    //     //     if (currentHash[locationKey].count > 1) {
+        //     if (currentHash[locationKey].count > 1) {
 
-    //     //         var outputString = locationKey + "|" + currentHash[locationKey].count + "|" + Object.keys(currentHash[locationKey].names).length + "|";
+        //         var outputString = locationKey + "|" + currentHash[locationKey].count + "|" + Object.keys(currentHash[locationKey].names).length + "|";
 
-    //     //         var countHash = {};
+        //         var countHash = {};
 
-    //     //         for (var placeKey in currentHash[locationKey].names) {
+        //         for (var placeKey in currentHash[locationKey].names) {
 
-    //     //             // outputString += "\"" + placeKey + "\" - " + currentHash[locationKey].names[placeKey]  + ", ";
+        //             // outputString += "\"" + placeKey + "\" - " + currentHash[locationKey].names[placeKey]  + ", ";
 
-    //     //             if (countHash[currentHash[locationKey].names[placeKey]]) {
-    //     //                 countHash[currentHash[locationKey].names[placeKey]]++;
-    //     //             } else {
-    //     //                 countHash[currentHash[locationKey].names[placeKey]] = 1;
-    //     //             }
-    //     //         }
+        //             if (countHash[currentHash[locationKey].names[placeKey]]) {
+        //                 countHash[currentHash[locationKey].names[placeKey]]++;
+        //             } else {
+        //                 countHash[currentHash[locationKey].names[placeKey]] = 1;
+        //             }
+        //         }
 
-    //     //         outputString += "|";
+        //         outputString += "|";
 
-    //     //         for (var countKey in countHash) {
-    //     //             outputString += countKey + ": " + countHash[countKey] + ", ";
-    //     //         }
+        //         for (var countKey in countHash) {
+        //             outputString += countKey + ": " + countHash[countKey] + ", ";
+        //         }
                 
-    //     //         console.error(outputString);
-    //     //     }
-    //     // }
+        //         console.error(outputString);
+        //     }
+        // }
 
-    // };
+    };
 
-    // console.error(JSON.stringify(duplicatesOnly));
+    console.error(JSON.stringify(duplicatesOnly));
 
-    // console.log("Seen " + rawLocationCount + " locations in the original file, processed " + hashLocationCount + " locations when looking for duplicates.");
+    console.log("Seen " + rawLocationCount + " locations in the original file, processed " + hashLocationCount + " locations when looking for duplicates.");
 
-    // console.log("... done.");
-    // console.log();
+    console.log("... done.");
+    console.log();
 
 
     // sortedLocations.sort(function (a, b) {
@@ -742,76 +720,132 @@ logParser.readData = function (fileDesc) {
 }
 
 
-logParser.separateUniqueRecords = function (parsedJson, duplicateLocations, uniqueUsers) {
+logParser.separateUniqueRecords = function (parsedJson) {
 
     if (parsedJson.coordinates) {
 
-        var tweetString = JSON.stringify(parsedJson) + ",\n";
+        var matchingUser = uniqueUsers[userId];
 
-        // find matching user for record-keeping
+        if (matchingUser) {
 
-        var userId = parsedJson.user.id_str,
-            matchingUser = uniqueUsers[userId];
+            // Check for duplicates
 
-        if (!matchingUser) {
+            if (matchingUser.twId === parsedJson.id_str) {
+                return;
+            }
 
-            // create user movement record
 
-            matchingUser = {
-                userId:             parsedJson.user.id_str,
-                userName:           parsedJson.user.screen_name, 
-                dupLocCount:        0,
-                uniqueLocCount:     0
-            };
+            // Calculate distance, duration and speed
 
-            uniqueUsers[userId] = matchingUser;
-        }
+            var time1 = matchingUser.time,
+                time2 = Date.parse(parsedJson.created_at);// - 18000000;           // UTC - 5 hours (18,000,000 ms)
 
-        // check if the current location is a duplicate
+            var lat1 = matchingUser.lat,
+                lon1 = matchingUser.lon,
+                lat2 = parsedJson.coordinates.coordinates[1],
+                lon2 = parsedJson.coordinates.coordinates[0];
 
-        var coordArray  = parsedJson.coordinates.coordinates,
-            locationKey = coordArray[0] + " " + coordArray[1];
+            var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
 
-        var isDuplicate = duplicateLocations[locationKey];
+            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
+            var dur  = (time2 - time1) / 1000.0;                                        // s
+            // var speed = Math.round(dist / dur);                                      // m/s
+            var speed = dist / (dur / 3600.0);                                          // MPH
 
-        
+            dist  = dist.toFixed(6);
+            speed = speed.toFixed(6);
 
-        if (isDuplicate) {
 
-            // update user statistics
-            matchingUser.dupLocCount++;
+            // Extract additional variables
+            var hashtags = "";
+            parsedJson.entities.hashtags.forEach(function (currentHashtag) {
+                hashtags += currentHashtag.text + " ";
+            });
 
-            // push tweet to duplicate location file
-            dupLocationPrinter.print(tweetString);
+            var media = "";
+            if (parsedJson.entities.media && parsedJson.entities.media[0]) {
+                media = parsedJson.entities.media[0].media_url;
+            }
+
+            var userMention = "";
+            if (parsedJson.entities.user_mentions && parsedJson.entities.user_mentions[0]) {
+                userMention = true;
+            }
+
+
+            // Round them off
+
+            // dist  = Math.ceil(dist);
+            // speed = Math.ceil(speed);
+            
+
+            // Check for unusual speed records
+
+            var name = matchingUser.name,
+                msg = matchingUser.msg;
+
+            // if (speed == Infinity) {
+                
+            //     // infinity means division by 0 - no time elapsed between the two tweets
+            //     console.error("i|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+
+            // } else if (isNaN(speed)) {
+                
+            //     console.error("n|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+
+            // } else if (speed === 0) {
+
+            //     // 0 speeds mean 0 distance - no movement between the two tweets
+            //     console.error("z|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+
+            // } else {
+                
+            //     // Log movement record
+            //     // console.error(time2 + " " + dur + " " + dist + " " + speed + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2); // time1 + " " + time2 + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2
+
+            //     var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + cleanText + "\n";
+            //     batchPrinter.print(movementString);
+            // }
+
+            // var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + userMention + "\t" + media + "\t" + hashtags + "\t" + cleanText + "\n";
+            var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
+            batchPrinter.print(movementString);
+
+            
+
+            // if (uniqueSpeeds[speed]) {
+            //     uniqueSpeeds[speed]++;
+            // } else {
+            //     uniqueSpeeds[speed] = 1;
+            // }
+
+            // if (speed > 2.5) {
+            //     console.log((new Date).toLocaleTimeString() + " [SERVER] " + "[SPEED] " + speed + " m/s");
+            // }
+
+            // Update user movement record
+            matchingUser.time    = time2;
+            matchingUser.lat     = lat2;
+            matchingUser.lon     = lon2;
+            matchingUser.msg     = cleanText;
 
         } else {
 
-            // update user statistics
-            matchingUser.uniqueLocCount++;
+            // Create user movement record
 
-            // push tweet to unique location file
-            uniqueLocationPrinter.print(tweetString);
+            uniqueUsers[userId] = {
+                twId:   parsedJson.id_str,
+                time:   Date.parse(parsedJson.created_at),// - 18000000,   // UTC - 5 hours (18,000,000 ms)
+                lat:    parsedJson.coordinates.coordinates[1],
+                lon:    parsedJson.coordinates.coordinates[0],
+                msg:    "", //cleanText,
+                name:   parsedJson.user.screen_name.replace(/\n|\t/g, " ")
+            };
         }
 
     }
 
-};
-
-
-logParser.tallyUserLocationDupStatistics = function (uniqueUsers) {
-
-    for (var userKey in uniqueUsers) {
-
-        var currentUser = uniqueUsers[userKey];
-
-        currentUser.totalLocCount   = currentUser.dupLocCount + currentUser.uniqueLocCount;
-        currentUser.uniqueLocPct    = currentUser.uniqueLocCount / currentUser.totalLocCount;
-
-        var userStatString = currentUser.userId + "\t" + currentUser.userName + "\t" + currentUser.dupLocCount + "\t" + currentUser.uniqueLocCount + "\t" + currentUser.totalLocCount + "\t" + currentUser.uniqueLocPct + "\n";
-        
-        userLocStatPrinter(userStatString);
-    }
-};
+}
 
 
 logParser.logMovement = function (parsedJson, uniqueUsers) {
@@ -1919,57 +1953,6 @@ var batchPrinter = {
     }
 
 };
-
-
-logParser.batchPrinterFactory = function (outputFilePath) {
-
-    var batchPrinter = {
-
-        stringCount:        0,
-        maxCount:           10000, 
-        outputString:       "",
-        fileName:           outputFilePath,
-
-        print:  function (newString) {
-
-            if (this.stringCount < this.maxCount) {
-
-                this.outputString += newString;
-                this.stringCount++;
-
-                // keep count of total number of tweets written to sorted file
-                logParser.tweetsDumped++;
-
-            } else {
-
-                // dump x tweets at a time
-                fs.appendFileSync(this.fileName, this.outputString);
-                // console.log("dumped " + stringCount + " tweets");
-
-                // start a new output string
-                this.outputString = newString;
-                this.stringCount = 1;
-
-                logParser.tweetsDumped++;
-            }
-
-        },
-
-        flush:  function () {
-
-            fs.appendFileSync(this.fileName, this.outputString);
-
-            // just in case
-            this.outputString = "";
-            this.stringCount = 0;
-        }
-
-    };
-
-    return batchPrinter;
-}
-
-
 
 
 //
