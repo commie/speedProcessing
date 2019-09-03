@@ -809,7 +809,7 @@ logParser.tallyUserLocationDupStatistics = function (uniqueUsers) {
 
         var userStatString = currentUser.userId + "\t" + currentUser.userName + "\t" + currentUser.dupLocCount + "\t" + currentUser.uniqueLocCount + "\t" + currentUser.totalLocCount + "\t" + currentUser.uniqueLocPct + "\n";
         
-        userLocStatPrinter(userStatString);
+        userLocStatPrinter.print(userStatString);
     }
 };
 
