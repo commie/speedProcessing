@@ -26,6 +26,17 @@ logParser.tweetsDumped      = 0;
 logParser.speedString       = "";
 logParser.speedStrCount     = 0;
 
+// movement extraction
+logParser.uniqueUsers       = {};
+
+// duplicate location detection
+logParser.rawLocationCount  = 0;
+logParser.duplicateHashes   = [{}];
+// logParser.hashesLen         = logParser.duplicateHashes.length;
+logParser.duplicateIdHashes = [{}]; // to avoid counting duplicate tweets as duplicate locations
+
+logParser.job               = null;
+
     // Data paths are relative to the current working directory in console,
     // node modules paths (and 'require' calls) are relative to the location 
     // of the main .js file.
@@ -65,6 +76,7 @@ logParser.init = function () {
     // Load the duplicate file
     // logParser.uniqueDuplicates = require('./spritzerReader.US.2013.06.21.16.55.duplicates.fixedHash.js').uniqueDuplicates;
 
+
     // Open the data files
     
     var filePath = logParser.filePath,
@@ -73,22 +85,118 @@ logParser.init = function () {
     // var duplicateFileName = filePath.slice(0, -4) + ".duplicates.out";
     // duplicates = require(duplicateFileName).duplicates;
 
-    batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".movement.out";
+    // movement output
+    batchPrinter.fileName   = logParser.filePath.slice(0, -4) + ".movement.out";
 
-    //
-
+    // intput and output for separating unique locations
     duplicateLocations      = require("./duplicateLocations.02.js").duplicateLocations;
 
     uniqueLocationPrinter   = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".uniqueLoc.out");
     dupLocationPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".dupLoc.out");
     userLocStatPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".userLocStat.out");
+
+
+    // Set up the jobs
+
+    var logMovementJob = {
+                        
+            "do": function (parsedJson) {   // this is executed for every tweet with parsedJson as a single parameter
+
+                // log movement and print results to file
+                batchPrinter.print(logParser.logMovement(parsedJson));
+            },
+            
+            "end": function () {            // this is executed once all tweets are read
+
+                // flush movement records buffer
+                batchPrinter.flush();
+            }
+        },
+
+        uniqueLocationDetection = {
+
+            "do": function (parsedJson) {
+
+                // build a hash with a counter for every location encountered
+                logParser.logDuplicateLocations(parsedJson);
+            },
+
+            "end": function () {
+
+                // tally up duplicate locations
+
+                var duplicatesOnly = [],
+                    hashLocationCount = 0,
+                    hashesLen = logParser.duplicateHashes.length;
+
+                for (var k = 0; k < hashesLen; k++) {
+
+                    var currentHash = logParser.duplicateHashes[k];
+
+                    duplicatesOnly.push({});
+
+                    for (var locationKey in currentHash) {
+
+                        // sanity check - this number should be equal to the number of locations processed
+                        hashLocationCount += currentHash[locationKey];
+
+                        // copy locations with more than one mention (duplicates)
+                        if (currentHash[locationKey] > 1) {
+
+                            duplicatesOnly[k][locationKey] = currentHash[locationKey];
+                        }
+                    }
+                }
+
+                console.log("Seen " + logParser.rawLocationCount + " locations in the original file, processed " + hashLocationCount + " locations when looking for duplicates.");
+                
+                // print duplicate locations to file
+                
+                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".duplicateLocations.out";
+                
+                batchPrinter.print(JSON.stringify(duplicatesOnly));
+                batchPrinter.flush();
+            }
+        },
+
+        uniqueLocationExtraction = {
+
+            "do": function (parsedJson) {
+
+                logParser.separateUniqueRecords(parsedJson);                        // needs uniqueLocationPrinter and dupLocationPrinter
+
+            },
+
+            "end": function () {
+
+                // tally up unique location statistics for each user
+                logParser.tallyUserLocationDupStatistics(logParser.uniqueUsers);    // needs userLocStatPrinter
+
+                // flush buffers
+                uniqueLocationPrinter.flush();
+                dupLocationPrinter.flush();
+                userLocStatPrinter.flush();
+            }
+        }
+
+    };
+    
+    this.job = logMovementJob;  // pick the current job
+
+
+
+
+
     
 
     // Read through data
+    
     console.log((new Date).toLocaleTimeString() + " " + "Reading " + logParser.filePath);
     this.readData(fileDesc);
 
+    
     // Read data to mongoDb
+    
     // console.log((new Date).toLocaleTimeString() + " [SERVER] " + "Reading " + logParser.filePath);
     // duplicates = require('./duplicates.out.js').duplicates;
     // this.mdbCollection = logParser.getMongoCollection(fileDesc);
@@ -142,8 +250,8 @@ logParser.readData = function (fileDesc) {
 
     // extracting movement records
 
-    var uniqueUsers = {},
-        uniqueCount,
+    // var uniqueUsers = {},
+    var uniqueCount,
         uniqueSpeeds = {},
         lastTweetText,
         lastTweetId,
@@ -212,6 +320,10 @@ logParser.readData = function (fileDesc) {
 
                     tweetIdString   = parsedJson.id_str;
                     lastTweetId     = tweetIdString;
+
+
+                    // x. Run the current job
+                    this.job.do(parsedJson);
 
 
                     // 3. Locate duplicates
@@ -531,7 +643,7 @@ logParser.readData = function (fileDesc) {
 
 
                     // 14. Separate unique records
-                    logParser.separateUniqueRecords(parsedJson, duplicateLocations, uniqueUsers);
+                    // logParser.separateUniqueRecords(parsedJson, duplicateLocations, uniqueUsers);
                     
                     
 
@@ -608,6 +720,9 @@ logParser.readData = function (fileDesc) {
     console.log((new Date).toLocaleTimeString() + " " + "Last tweet # is " + lastTweetId);
     console.log();
 
+    // x. Finalize the current job
+    this.job.end();
+
     // 3. Log duplicates to file
     // logParser.printDuplicates(duplicateHashes);
 
@@ -620,11 +735,11 @@ logParser.readData = function (fileDesc) {
     
     // x. Tally up user statistics for unique locations + flush buffers
 
-    logParser.tallyUserLocationDupStatistics(uniqueUsers);
+    // logParser.tallyUserLocationDupStatistics(uniqueUsers);
 
-    uniqueLocationPrinter.flush();
-    dupLocationPrinter.flush();
-    userLocStatPrinter.flush();
+    // uniqueLocationPrinter.flush();
+    // dupLocationPrinter.flush();
+    // userLocStatPrinter.flush();
     
 
 
@@ -735,14 +850,11 @@ logParser.readData = function (fileDesc) {
     //     console.log(tweetDelay + " " + tweetDelays[tweetDelay]);
     // }
     // console.log();
-
-
-    
     
 }
 
 
-logParser.separateUniqueRecords = function (parsedJson, duplicateLocations, uniqueUsers) {
+logParser.separateUniqueRecords = function (parsedJson) { // both of these are global: , duplicateLocations, uniqueUsers) {
 
     if (parsedJson.coordinates) {
 
@@ -751,7 +863,7 @@ logParser.separateUniqueRecords = function (parsedJson, duplicateLocations, uniq
         // find matching user for record-keeping
 
         var userId = parsedJson.user.id_str,
-            matchingUser = uniqueUsers[userId];
+            matchingUser = logParser.uniqueUsers[userId];
 
         if (!matchingUser) {
 
@@ -764,7 +876,7 @@ logParser.separateUniqueRecords = function (parsedJson, duplicateLocations, uniq
                 uniqueLocCount:     0
             };
 
-            uniqueUsers[userId] = matchingUser;
+            logParser.uniqueUsers[userId] = matchingUser;
         }
 
         // check if the current location is a duplicate
@@ -814,20 +926,74 @@ logParser.tallyUserLocationDupStatistics = function (uniqueUsers) {
 };
 
 
-logParser.logMovement = function (parsedJson, uniqueUsers) {
-
-    var userId = parsedJson.user.id_str;
+logParser.logDuplicateLocations = function (parsedJson) {
 
     if (parsedJson.coordinates) {
 
-        var matchingUser = uniqueUsers[userId];
+        // Discard duplicate tweets before processing the rest
+        if (logParser.isDuplicate(logParser.duplicateIdHashes, parsedJson.id_str, logParser.parsedTweets)) {
+
+            continue;
+        }
+
+        logParser.rawLocationCount++;
+
+
+        // Log duplicate locations
+
+        var coordArray  = parsedJson.coordinates.coordinates,
+            locationKey = coordArray[0] + " " + coordArray[1];
+
+        var hashesLen = logParser.duplicateHashes.length;
+
+        for (var k = 0; k < hashesLen; k++) {
+
+            var currentHash     = logParser.duplicateHashes[k],
+                currentLocation = currentHash[locationKey];
+
+            if (currentLocation) {
+
+                currentHash[locationKey]++;
+                break;
+
+            } else if (k == hashesLen - 1) {
+
+                currentHash[locationKey] = 1;
+            }
+        }
+
+
+        // Check hash size every 100,000 records and add new location hashes, as needed
+
+        if (!(logParser.rawLocationCount % 100000)) {
+
+            var lastHash = logParser.duplicateHashes[hashesLen - 1];
+
+            if (Object.keys(lastHash).length > 1000000) {
+
+                hashesLen = logParser.duplicateHashes.push({});
+                console.log((new Date).toLocaleTimeString() + " [SERVER] " + "New location hash added, " + hashesLen + " total.");
+            }
+        }
+    }
+
+};
+
+
+logParser.logMovement = function (parsedJson) { //, uniqueUsers) {
+
+    var movementString  = "",
+        userId          = parsedJson.user.id_str;
+
+    if (parsedJson.coordinates) {
+
+        var matchingUser = logParser.uniqueUsers[userId];
 
         if (matchingUser) {
 
             // Check for duplicates
-
             if (matchingUser.twId === parsedJson.id_str) {
-                return;
+                return movementString;
             }
 
 
@@ -904,8 +1070,8 @@ logParser.logMovement = function (parsedJson, uniqueUsers) {
             // }
 
             // var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + userMention + "\t" + media + "\t" + hashtags + "\t" + cleanText + "\n";
-            var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
-            batchPrinter.print(movementString);
+            movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
+            // batchPrinter.print(movementString);
 
             
 
@@ -929,7 +1095,7 @@ logParser.logMovement = function (parsedJson, uniqueUsers) {
 
             // Create user movement record
 
-            uniqueUsers[userId] = {
+            logParser.uniqueUsers[userId] = {
                 twId:   parsedJson.id_str,
                 time:   Date.parse(parsedJson.created_at),// - 18000000,   // UTC - 5 hours (18,000,000 ms)
                 lat:    parsedJson.coordinates.coordinates[1],
@@ -941,6 +1107,7 @@ logParser.logMovement = function (parsedJson, uniqueUsers) {
 
     }
 
+    return movementString;
 }
 
 
@@ -1189,18 +1356,18 @@ logParser.flushSortingBuffers = function (sortedTweets, bufferedTweets, discardC
 }
 
 
-logParser.isDuplicate = function (duplicateHashes, tweetIdString, parsedTweets) {
+logParser.isDuplicate = function (duplicateIdHashes, tweetIdString, parsedTweets) {
 
     var isDuplicate = false;
 
-    var hashesLen = duplicateHashes.length,
+    var hashesLen = duplicateIdHashes.length,
         currentHash,
         k;
 
     // Check every hash for a match with current tweet id
     for (k = 0; k < hashesLen; k++) {
 
-        currentHash = duplicateHashes[k];
+        currentHash = duplicateIdHashes[k];
 
         if (currentHash[tweetIdString]) {
 
@@ -1217,15 +1384,14 @@ logParser.isDuplicate = function (duplicateHashes, tweetIdString, parsedTweets) 
 
     // Add new hash when current is full
 
-    var maxHashLen          = 1000000,
-        maxHashNum          = 90; // this sets max tweet count to about 90,000,000
+    var maxHashLen = 1000000;
 
     if (!(parsedTweets % 100000)) { 
 
         // every 100,000 tweets, check if the current hash size exceeded max hash length.
-        if (Object.keys(duplicateHashes[hashesLen - 1]).length > maxHashLen) {
+        if (Object.keys(duplicateIdHashes[hashesLen - 1]).length > maxHashLen) {
 
-            hashesLen = duplicateHashes.push({});
+            hashesLen = duplicateIdHashes.push({});
 
             console.log((new Date).toLocaleTimeString() + " " + "New tweet ID hash added, " + hashesLen + " total.");
         }
