@@ -91,9 +91,9 @@ logParser.init = function () {
     // intput and output for separating unique locations
     duplicateLocations      = require("./duplicateLocations.02.js").duplicateLocations;
 
-    uniqueLocationPrinter   = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".uniqueLoc.out");
-    dupLocationPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".dupLoc.out");
-    userLocStatPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".userLocStat.out");
+    uniqueLocationPrinter   = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".uniqueLocTest.out");
+    dupLocationPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".dupLocTest.out");
+    userLocStatPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".userLocStatTest.out");
 
 
     // Set up the jobs
@@ -152,7 +152,7 @@ logParser.init = function () {
                 
                 // print duplicate locations to file
                 
-                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".duplicateLocations.out";
+                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".duplicateLocationsTest.out";
                 
                 batchPrinter.print(JSON.stringify(duplicatesOnly));
                 batchPrinter.flush();
@@ -177,11 +177,9 @@ logParser.init = function () {
                 dupLocationPrinter.flush();
                 userLocStatPrinter.flush();
             }
-        }
+        };
 
-    };
-    
-    this.job = logMovementJob;  // pick the current job
+    this.job = uniqueLocationExtraction;  // pick the current job
 
 
 
@@ -933,7 +931,7 @@ logParser.logDuplicateLocations = function (parsedJson) {
         // Discard duplicate tweets before processing the rest
         if (logParser.isDuplicate(logParser.duplicateIdHashes, parsedJson.id_str, logParser.parsedTweets)) {
 
-            continue;
+            return;
         }
 
         logParser.rawLocationCount++;

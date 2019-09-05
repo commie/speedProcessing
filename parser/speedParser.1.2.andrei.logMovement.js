@@ -43,7 +43,8 @@ logParser.speedStrCount     = 0;
 // big crawler
 // logParser.filePath = '/Volumes/SanDisk64/distributedReader.2.0.minerThorin.2015.10.28.out';
 // logParser.filePath = '/Volumes/Tera/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
-logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+//logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.dupLoc.out';
 
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
@@ -276,76 +277,76 @@ logParser.readData = function (fileDesc) {
 
                     // var userId = parsedJson.user.id;
 
-                    if (parsedJson.coordinates) {
+                    // if (parsedJson.coordinates) {
 
-                        // discard duplicate tweets
-                        if (logParser.isDuplicate(duplicateIdHashes, tweetIdString, this.parsedTweets)) {
+                    //     // discard duplicate tweets
+                    //     if (logParser.isDuplicate(duplicateIdHashes, tweetIdString, this.parsedTweets)) {
 
-                            continue;
-                        }
+                    //         continue;
+                    //     }
 
-                        // process unique tweets
-                        rawLocationCount++;
+                    //     // process unique tweets
+                    //     rawLocationCount++;
 
-                        var coordArray = parsedJson.coordinates.coordinates;
-                        var locationKey = coordArray[0] + " " + coordArray[1];
+                    //     var coordArray = parsedJson.coordinates.coordinates;
+                    //     var locationKey = coordArray[0] + " " + coordArray[1];
 
-                        // var placeName = null;
-                        // if (parsedJson.place) {
-                        //     placeName = parsedJson.place.name;
-                        // }
+                    //     // var placeName = null;
+                    //     // if (parsedJson.place) {
+                    //     //     placeName = parsedJson.place.name;
+                    //     // }
 
-                        // Run a bounding box check
-                        // if (coordArray[0] < -77.892466 || coordArray[0] > -77.835732 ||
-                        //     coordArray[1] <  40.769687 || coordArray[1] >  40.805494) {
+                    //     // Run a bounding box check
+                    //     // if (coordArray[0] < -77.892466 || coordArray[0] > -77.835732 ||
+                    //     //     coordArray[1] <  40.769687 || coordArray[1] >  40.805494) {
 
-                        //     continue;
-                        // }
+                    //     //     continue;
+                    //     // }
 
-                        // Process duplicate locations
-                        for (var k = 0; k < hashesLen; k++) {
+                    //     // Process duplicate locations
+                    //     for (var k = 0; k < hashesLen; k++) {
 
-                            var currentHash = duplicateHashes[k];
-                            var currentLocation = currentHash[locationKey];
+                    //         var currentHash = duplicateHashes[k];
+                    //         var currentLocation = currentHash[locationKey];
 
-                            if (currentLocation) {
+                    //         if (currentLocation) {
 
-                                //console.log("Duplicate detected");
+                    //             //console.log("Duplicate detected");
 
-                                // currentLocation.count++;
-                                currentHash[locationKey]++;
+                    //             // currentLocation.count++;
+                    //             currentHash[locationKey]++;
 
-                                // if (currentLocation.names[placeName]){
-                                //     currentLocation.names[placeName]++;
-                                // } else {
-                                //     currentLocation.names[placeName] = 1;
-                                // }
+                    //             // if (currentLocation.names[placeName]){
+                    //             //     currentLocation.names[placeName]++;
+                    //             // } else {
+                    //             //     currentLocation.names[placeName] = 1;
+                    //             // }
 
-                                // if (currentLocation.names[userId]){
-                                //     currentLocation.names[userId]++;
-                                // } else {
-                                //     currentLocation.names[userId] = 1;
-                                // }
+                    //             // if (currentLocation.names[userId]){
+                    //             //     currentLocation.names[userId]++;
+                    //             // } else {
+                    //             //     currentLocation.names[userId] = 1;
+                    //             // }
 
-                                break;
+                    //             break;
 
-                            } else if (k == hashesLen - 1) {
+                    //         } else if (k == hashesLen - 1) {
 
-                                currentLocation = 1;
+                    //             currentLocation = 1;
 
-                                // currentLocation = {
-                                //     count: 1,
-                                //     names: {}
-                                // };
+                    //             // currentLocation = {
+                    //             //     count: 1,
+                    //             //     names: {}
+                    //             // };
                                 
-                                // currentLocation.names[placeName] = 1;
-                                // currentLocation.names[userId] = 1;
+                    //             // currentLocation.names[placeName] = 1;
+                    //             // currentLocation.names[userId] = 1;
 
-                                currentHash[locationKey] = currentLocation;
-                            }
-                        }
+                    //             currentHash[locationKey] = currentLocation;
+                    //         }
+                    //     }
                         
-                    }
+                    // }
 
 
                     // 7.1 Collect user IDs
@@ -375,7 +376,7 @@ logParser.readData = function (fileDesc) {
 
 
                     // 9. Log movement records
-                    // logParser.logMovement(parsedJson, uniqueUsers);
+                    logParser.logMovement(parsedJson, uniqueUsers);
                     
                     // if (parsedJson.coordinates) {
 
@@ -534,35 +535,35 @@ logParser.readData = function (fileDesc) {
                 
 
                 // Rotate location hashes
-                if (!(this.parsedTweets % 100000)) { 
+                // if (!(this.parsedTweets % 100000)) { 
 
-                    // This guarantees that no hash will be bigger than 100,000
-                    // records, but doesn't guarantee that they will be of any
-                    // particular size.
+                //     // This guarantees that no hash will be bigger than 100,000
+                //     // records, but doesn't guarantee that they will be of any
+                //     // particular size.
 
-                    // console.log("Location hash size check triggered, " + )
+                //     // console.log("Location hash size check triggered, " + )
 
-                    if (Object.keys(duplicateHashes[hashesLen - 1]).length > 1000000) {
+                //     if (Object.keys(duplicateHashes[hashesLen - 1]).length > 1000000) {
 
-                        hashesLen = duplicateHashes.push({});
+                //         hashesLen = duplicateHashes.push({});
 
-                        // if (hashesLen > 5) {
+                //         // if (hashesLen > 5) {
 
-                        //     var hashToTrim = locationHashes[hashesLen - 1 - 10];
-                        //     var trimmedHash = {};
+                //         //     var hashToTrim = locationHashes[hashesLen - 1 - 10];
+                //         //     var trimmedHash = {};
 
-                        //     for (var key in hashToTrim) {
-                        //         if (hashToTrim[key] > 1) {
-                        //             trimmedHash[key] = hashToTrim[key];
-                        //         }
-                        //     }
+                //         //     for (var key in hashToTrim) {
+                //         //         if (hashToTrim[key] > 1) {
+                //         //             trimmedHash[key] = hashToTrim[key];
+                //         //         }
+                //         //     }
 
-                        //     locationHashes[hashesLen - 1 - 10] = trimmedHash;
-                        // }
+                //         //     locationHashes[hashesLen - 1 - 10] = trimmedHash;
+                //         // }
 
-                        console.log((new Date).toLocaleTimeString() + " [SERVER] " + "New location hash added, " + hashesLen + " total.");
-                    }
-                }
+                //         console.log((new Date).toLocaleTimeString() + " [SERVER] " + "New location hash added, " + hashesLen + " total.");
+                //     }
+                // }
 
             }
 
@@ -602,7 +603,7 @@ logParser.readData = function (fileDesc) {
     // logParser.flushSortingBuffers(logParser.sortedTweets, logParser.bufferedTweets, logParser.discardCount, duplicatesRemoved, separator);
 
     // 9. Flush movement records buffer
-    // batchPrinter.flush();
+    batchPrinter.flush();
     
 
 
@@ -625,65 +626,65 @@ logParser.readData = function (fileDesc) {
 
 
 
-    console.log("Duplicate locations are now printed to stderr ...");
+    // console.log("Duplicate locations are now printed to stderr ...");
 
-    var duplicatesOnly = [];
-    var hashLocationCount = 0;
+    // var duplicatesOnly = [];
+    // var hashLocationCount = 0;
 
-    for (var k = 0; k < hashesLen; k++) {
+    // for (var k = 0; k < hashesLen; k++) {
 
-        var currentHash = duplicateHashes[k];
+    //     var currentHash = duplicateHashes[k];
 
-        duplicatesOnly.push({});
+    //     duplicatesOnly.push({});
 
-        for (var locationKey in currentHash) {
+    //     for (var locationKey in currentHash) {
 
-            hashLocationCount += currentHash[locationKey];
+    //         hashLocationCount += currentHash[locationKey];
 
-            if (currentHash[locationKey] > 1) {
+    //         if (currentHash[locationKey] > 1) {
 
-                duplicatesOnly[k][locationKey] = currentHash[locationKey];
-            };
-        };
+    //             duplicatesOnly[k][locationKey] = currentHash[locationKey];
+    //         };
+    //     };
 
 
-        // for (var locationKey in currentHash) {
+    //     // for (var locationKey in currentHash) {
 
-        //     if (currentHash[locationKey].count > 1) {
+    //     //     if (currentHash[locationKey].count > 1) {
 
-        //         var outputString = locationKey + "|" + currentHash[locationKey].count + "|" + Object.keys(currentHash[locationKey].names).length + "|";
+    //     //         var outputString = locationKey + "|" + currentHash[locationKey].count + "|" + Object.keys(currentHash[locationKey].names).length + "|";
 
-        //         var countHash = {};
+    //     //         var countHash = {};
 
-        //         for (var placeKey in currentHash[locationKey].names) {
+    //     //         for (var placeKey in currentHash[locationKey].names) {
 
-        //             // outputString += "\"" + placeKey + "\" - " + currentHash[locationKey].names[placeKey]  + ", ";
+    //     //             // outputString += "\"" + placeKey + "\" - " + currentHash[locationKey].names[placeKey]  + ", ";
 
-        //             if (countHash[currentHash[locationKey].names[placeKey]]) {
-        //                 countHash[currentHash[locationKey].names[placeKey]]++;
-        //             } else {
-        //                 countHash[currentHash[locationKey].names[placeKey]] = 1;
-        //             }
-        //         }
+    //     //             if (countHash[currentHash[locationKey].names[placeKey]]) {
+    //     //                 countHash[currentHash[locationKey].names[placeKey]]++;
+    //     //             } else {
+    //     //                 countHash[currentHash[locationKey].names[placeKey]] = 1;
+    //     //             }
+    //     //         }
 
-        //         outputString += "|";
+    //     //         outputString += "|";
 
-        //         for (var countKey in countHash) {
-        //             outputString += countKey + ": " + countHash[countKey] + ", ";
-        //         }
+    //     //         for (var countKey in countHash) {
+    //     //             outputString += countKey + ": " + countHash[countKey] + ", ";
+    //     //         }
                 
-        //         console.error(outputString);
-        //     }
-        // }
+    //     //         console.error(outputString);
+    //     //     }
+    //     // }
 
-    };
+    // };
 
-    console.error(JSON.stringify(duplicatesOnly));
+    // console.error(JSON.stringify(duplicatesOnly));
 
-    console.log("Seen " + rawLocationCount + " locations in the original file, processed " + hashLocationCount + " locations when looking for duplicates.");
+    // console.log("Seen " + rawLocationCount + " locations in the original file, processed " + hashLocationCount + " locations when looking for duplicates.");
 
-    console.log("... done.");
-    console.log();
+    // console.log("... done.");
+    // console.log();
 
 
     // sortedLocations.sort(function (a, b) {

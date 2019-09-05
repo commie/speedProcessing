@@ -6,12 +6,13 @@
 	7:28:15 PM Last tweet # is 947618361709678592
 
 	Duplicate locations are now printed to stderr ...
-	Seen 9207960 locations in the original file, processed 9207960 locations when looking for duplicates.
+	Seen 9,207,960 locations in the original file, processed 9,207,960 locations when looking for duplicates.
 	... done.
 
 
 realized that we're including duplicate tweets in the count of duplicate locations
 	re-wrote the script to exclude duplicate tweets before any location processing is done
+
 
 ran duplicate location extraction again
 
@@ -34,11 +35,20 @@ ran duplicate location extraction again
 	 	 1.4%	of all geo tweets processed
 
 
+ran a script to separate unique and duplicate locations into separate files
+
+	distributedReader.2.1.twitterCrawler01.2017.12.merged.dupLoc.out
+	distributedReader.2.1.twitterCrawler01.2017.12.merged.uniqueLoc.out
+	distributedReader.2.1.twitterCrawler01.2017.12.merged.userLocStat.out	// user id, user name, unique count, duplicate count, total, unique percent
 
 
+ran movement extraction for unique and duplicate location files
 
-
-
+	distributedReader.2.1.twitterCrawler01.2017.12.merged.uniqueLoc.movement.out
+	distributedReader.2.1.twitterCrawler01.2017.12.merged.dupLoc.movement.out
+	
+	file have 1,212,780 and 7,995,180 tweets, respectively
+	this is equal to the 9,207,960 locations in the original file!
 
 
 
