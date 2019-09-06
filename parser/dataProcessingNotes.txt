@@ -50,5 +50,26 @@ ran movement extraction for unique and duplicate location files
 	file have 1,212,780 and 7,995,180 tweets, respectively
 	this is equal to the 9,207,960 locations in the original file!
 
+Heatmaps for duplicate and unique locations
+	DUR-DIST_grid_dup.png , svg
+	DUR-DIST_grid_unique.png ,svg
 
+Heatmap of duplicate - unique counts difference usinfg the grid generatd based on the total movement record file
+	DUR-DIST_dup_un_diff.png, svg
+
+TODO
+break into subsets
+	1) by visual density (clusters)
+	2) by transport modality (logical subset)
+
+user heterogeneity for all data
+
+extract Keywords, for clusters
+
+extract top hashtag for clusters
+
+extract top 100 emoji for clusters
+
+image attachment (0,1)
+extract url
 

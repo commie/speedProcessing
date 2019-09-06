@@ -1,21 +1,56 @@
-fullData <- scan("D:/Andrei/distributedReader.2.1.twitterCrawler01.2017.12.merged.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))  #duration, distance, speed
+fullData <- scan("D:/Andrei/movement_analysis/movement_dup_n_uniqs/distributedReader.2.1.twitterCrawler01.2017.12.merged.uniqueLoc.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))  #duration, distance, speed
+
+
+fullData_dup <- scan("D:/Andrei/movement_analysis/movement_dup_n_uniqs/distributedReader.2.1.twitterCrawler01.2017.12.merged.dupLoc.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL))  #duration, distance, speed /new file from parser 1.3
+fullData_un <- scan("D:/Andrei/movement_analysis/movement_dup_n_uniqs/distributedReader.2.1.twitterCrawler01.2017.12.merged.uniqueLoc.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL))  #duration, distance, speed /new file from parser 1.3
+fullData_all <- scan("D:/Andrei/movement_analysis/initial_movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.movementOnly.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL))  #duration, distance, speed /new file from parser 1.3
+
+
 
 selectedDataList <- list (duration = fullData[[4]], distance = fullData[[5]], speed = fullData[[6]])
 
+selectedDataList_un <- list (duration = fullData_un[[4]], distance = fullData_un[[5]], speed = fullData_un[[6]])
+selectedDataList_all <- list (duration = fullData_all[[4]], distance = fullData_all[[5]], speed = fullData_all[[6]])
+
+
 selectedDataFrame <- as.data.frame(selectedDataList)
+
+selectedDataFrame_un <- as.data.frame(selectedDataList_un)
+selectedDataFrame_all <- as.data.frame(selectedDataList_all)
 
 #filteredData <- selectedDataList[which(selectedDataList$duration > 0 & is.finite(selectedDataList$speed)) & is.finite(selectedDataList$distance)),] #no neg durations, speed, no Nan no Inf
 filteredData <- selectedDataFrame[which(selectedDataFrame$duration > 0),]  #no neg durations, speed, no Nan no Inf
+
+filteredData_un <- selectedDataFrame_un[which(selectedDataFrame_un$duration > 0),]  #no neg durations, speed, no Nan no Inf
+filteredData_all <- selectedDataFrame_all[which(selectedDataFrame_all$duration > 0),]  #no neg durations, speed, no Nan no Inf
 
 # calculate log for each column
 filteredData$distance_log = log(filteredData$distance+1)
 filteredData$speed_log = log(filteredData$speed+1) 
 filteredData$duration_log = log(filteredData$duration) 
 
+# calculate log for each column unique
+filteredData_un$distance_log = log(filteredData_un$distance+1)
+filteredData_un$speed_log = log(filteredData_un$speed+1) 
+filteredData_un$duration_log = log(filteredData_un$duration) 
+
+# calculate log for each column all
+filteredData_all$distance_log = log(filteredData_all$distance+1)
+filteredData_all$speed_log = log(filteredData_all$speed+1) 
+filteredData_all$duration_log = log(filteredData_all$duration) 
+
+################################################################
+
 #calculate max values
 distance_log_max = max(filteredData$distance_log)
 speed_log_max = max(filteredData$speed_log)
 duration_log_max = max(filteredData$duration_log)
+
+#calculate max values all
+distance_log_max = max(filteredData_all$distance_log)
+speed_log_max = max(filteredData_all$speed_log)
+duration_log_max = max(filteredData_all$duration_log)
+
 
 # number of cells horizontalli and vertically
 nBins<-100
@@ -95,9 +130,59 @@ for (i in 1:numRec) {
 ####################################################################################################################################################################################
 
 
+# bin records for unique and duplicate files using DURATION AND DISTANCE as axes ####################################################################### 
+binsx <- seq(0, distance_log_max, length=nBins)
+binsy <- seq(0, duration_log_max, length=nBins)
+
+freq2D_un <- diag(nBins)*0
+freq2D_dup <- diag(nBins)*0
+
+numRec_un <- nrow(filteredData_un)
+numRec_dup <- nrow(filteredData)
+
+for (i in 1:numRec_un) {
+
+	distance_log	<- filteredData_un$distance_log[i];
+	duration_log 	<- filteredData_un$duration_log[i];
+	
+	if (distance_log && duration_log ) {
+
+		# 
+		xBin <- findInterval(distance_log, binsx);
+		yBin <- findInterval(duration_log, binsy);
+		
+
+		freq2D_un[xBin, yBin] <- freq2D_un[xBin, yBin] + 1;
+	}
+}
+
+for (i in 1:numRec_dup) {
+
+	distance_log	<- filteredData$distance_log[i];
+	duration_log 	<- filteredData$duration_log[i];
+	
+	if (distance_log && duration_log ) {
+
+		# 
+		xBin <- findInterval(distance_log, binsx);
+		yBin <- findInterval(duration_log, binsy);
+		
+
+		freq2D_dup[xBin, yBin] <- freq2D_dup[xBin, yBin] + 1;
+	}
+}
+
+## calculate matrix difference
+freq2D_diff <- freq2D_dup - freq2D_un
+
+
+#####################################################################################################################################
+
+
 # histogram 
 raw_hist <- hist(freq2D[freq2D > 0], 100)
 
+raw_hist <- hist(freq2D_diff[freq2D_diff > 0], 100)
 
 #use log scale for histogram counts
 log_hist <-raw_hist
@@ -141,7 +226,13 @@ x <- c(0.34657359, 0.693147181, 1.386294361, 2.079441542, 2.772588722, 3.4657359
 y <- c(0,4.094344562,8.188689124,8.881836305,11.36674295,13.3126531,14.78173366,17.26664031); # duration 1 sec, min, hr, 2hr, day, week, month, year
 title = "DURATION-DISTANCE"
 
+##############################################
+# class breaks for difference matrix heatmap #
+##############################################
 
+raw_breaks <- c(-9100,-4400,-2100,-1000,-500,-0.9,0.9,500,1000,2100,4400,9100) ## geometric series starting 500 with exp of 2.063
+
+#################################################
 
 raw_breaks <- exp(class_breaks)
 
@@ -156,10 +247,23 @@ raw_breaks[2]=0.9
 # class_colors <- c("#CDCDCD","#F9E8FB","#E2D4F6","#CBC0EE","#B4ADE5","#9E9BD9","#8889CC","#7378BD","#5F67AC","#4B5799","#394786","#283871","#192A5B") #  SPEED AND DISTANCE
  class_colors <- c("#CDCDCD","#F9E8FB","#E0D2F5","#C6BCEC","#ADA8E1","#9594D4","#7D80C4","#676EB3","#515C9F","#3D4A8A","#2A3A73","#192A5B")  #    DURATION AND DISTANCE
 
+##############################################
+# class colors for difference matrix heatmap #
+##############################################
+
+class_colors <- c("#67001f","#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#053061")  #    DURATION AND DISTANCE","################################################
+
 #draw heatmap
 image(binsx, binsy, freq2D, zlim=c(1, max(freq2D)), col= class_colors, breaks = raw_breaks)
 title(main = title, font.main = 4)
 abline(h= y, v=x, col = rgb(1,1,1, 0.4 , maxColorValue = 1))
+
+
+#draw heatmap for difference matrix
+image(binsx, binsy, freq2D_diff,  col= class_colors, breaks = raw_breaks)
+title(main = title, font.main = 4)
+abline(h= y, v=x, col = rgb(1,1,1, 0.4 , maxColorValue = 1))
+
 
 #draw lines of equal speed
 
