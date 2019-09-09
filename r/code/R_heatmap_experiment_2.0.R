@@ -1,3 +1,5 @@
+##    movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
+
 fullData <- scan("D:/Andrei/movement_analysis/movement_dup_n_uniqs/distributedReader.2.1.twitterCrawler01.2017.12.merged.uniqueLoc.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))  #duration, distance, speed
 
 
@@ -175,9 +177,7 @@ for (i in 1:numRec_dup) {
 ## calculate matrix difference
 freq2D_diff <- freq2D_dup - freq2D_un
 
-
 #####################################################################################################################################
-
 
 # histogram 
 raw_hist <- hist(freq2D[freq2D > 0], 100)
@@ -204,7 +204,6 @@ yfit <- yfit * diff(h$mids[1:2]) * length(g)
 lines(xfit, yfit, col = "red", lwd = 2)
 
 # go to excell and calculate breaks
-
 
 # plot heatmap #####################################################################################################################################################################
 

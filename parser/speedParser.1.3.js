@@ -1050,12 +1050,11 @@ logParser.calcMovementHeterogeneityMatrix = function (parsedJson) {
 
 
             // Place this movement record into the user heterogeneity matrix
-
-            var xStep = "xxx" / 99,
-                yStep = "yyy" / 99;
-
             var x = dist,
                 y = dur;
+
+            var xStep = 9.420376507528268 / (logParser.heteroMatrixSize -1),        // natural log of the max travelled distance
+                yStep = 14.800201719199531 / (logParser.heteroMatrixSize -1);       // natural log of the max travelled duration
 
             var xBin = Math.floor(Math.log(x) / xStep),
                 yBin = Math.floor(Math.log(y) / yStep);
