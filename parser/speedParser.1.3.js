@@ -35,6 +35,14 @@ logParser.duplicateHashes   = [{}];
 // logParser.hashesLen         = logParser.duplicateHashes.length;
 logParser.duplicateIdHashes = [{}]; // to avoid counting duplicate tweets as duplicate locations
 
+// movement heterogeneity matrix stats
+logParser.heteroMatrixSize  = 100;
+logParser.heteroMatrix      = new Array(logParser.heteroMatrixSize);
+
+logParser.heteroMatrix.forEach(function (value, i) {
+    logParser.heteroMatrix[i] = new Array(logParser.heteroMatrixSize);
+});
+
 logParser.job               = null;
 
     // Data paths are relative to the current working directory in console,
@@ -113,6 +121,35 @@ logParser.init = function () {
             }
         },
 
+        calcHeteroMovementMatrixJob = {
+                        
+            "do": function (parsedJson) {
+
+                // populate user heterogeneity matrix
+                logParser.calcMovementHeterogeneityMatrix(parsedJson);
+            },
+            
+            "end": function () {
+
+                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".heteroMatrix.out";
+                
+                logParser.heteroMatrix.forEach(function (matrixRow) {
+                    matrixRow.forEach(function (matrixCell) {
+
+                        // tally up the matrix statistics
+                        matrixCell.uniqueUserCount      = Object.keys(matrixCell.uniqueUsers).length;
+                        matrixCell.recordToUserRatio    = matrixCell.movementRecordCount / matrixCell.uniqueUserCount;
+
+                        // print matrix contents
+                        batchPrinter.print(matrixCell.movementRecordCount + "\t" + matrixCell.uniqueUserCount + "\t" + matrixCell.recordToUserRatio + "\n");
+                    });
+                });
+
+                // flush movement records buffer
+                batchPrinter.flush();
+            }
+        },
+
         uniqueLocationDetection = {
 
             "do": function (parsedJson) {
@@ -179,7 +216,7 @@ logParser.init = function () {
             }
         };
 
-    this.job = uniqueLocationExtraction;  // pick the current job
+    this.job = calcHeteroMovementMatrixJob;  // pick the current job
 
 
 
@@ -976,6 +1013,99 @@ logParser.logDuplicateLocations = function (parsedJson) {
     }
 
 };
+
+
+logParser.calcMovementHeterogeneityMatrix = function (parsedJson) {
+
+    var userId = parsedJson.user.id_str;
+
+    if (parsedJson.coordinates) {
+
+        var matchingUser = logParser.uniqueUsers[userId];
+
+        if (matchingUser) {
+
+            // Check for duplicates
+            if (matchingUser.twId === parsedJson.id_str) {
+                return;
+            }
+
+
+            // Calculate distance, duration and speed
+
+            var time1 = matchingUser.time,
+                time2 = Date.parse(parsedJson.created_at);// - 18000000;           // UTC - 5 hours (18,000,000 ms)
+
+            var lat1 = matchingUser.lat,
+                lon1 = matchingUser.lon,
+                lat2 = parsedJson.coordinates.coordinates[1],
+                lon2 = parsedJson.coordinates.coordinates[0];
+
+            var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
+
+            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
+            var dur  = (time2 - time1) / 1000.0;                                        // s
+            // var speed = Math.round(dist / dur);                                      // m/s
+            var speed = dist / (dur / 3600.0);                                          // MPH
+
+
+            // Place this movement record into the user heterogeneity matrix
+
+            var xStep = "xxx" / 99,
+                yStep = "yyy" / 99;
+
+            var x = dist,
+                y = dur;
+
+            var xBin = Math.floor(Math.log(x) / xStep),
+                yBin = Math.floor(Math.log(y) / yStep);
+
+            var currentRecord = logParser.heteroMatrix[xBin][yBin];
+
+            if (currentRecord) {
+
+                currentRecord.movementRecordCount++;
+                currentRecord.uniqueUsers[userId] = true;
+            
+            } else {
+
+                logParser.heteroMatrix[xBin][yBin] = {
+
+                    "movementRecordCount":  1,
+                    "uniqueUsers":          {}
+
+                };
+
+                logParser.heteroMatrix[xBin][yBin].uniqueUsers[userId] = true;
+
+            }
+
+
+            // Update user movement record
+
+            matchingUser.time    = time2;
+            matchingUser.lat     = lat2;
+            matchingUser.lon     = lon2;
+            matchingUser.msg     = cleanText;
+
+        } else {
+
+            // Create user movement record
+
+            logParser.uniqueUsers[userId] = {
+                twId:   parsedJson.id_str,
+                time:   Date.parse(parsedJson.created_at),// - 18000000,   // UTC - 5 hours (18,000,000 ms)
+                lat:    parsedJson.coordinates.coordinates[1],
+                lon:    parsedJson.coordinates.coordinates[0],
+                msg:    "", //cleanText,
+                name:   parsedJson.user.screen_name.replace(/\n|\t/g, " ")
+            };
+        }
+
+    }
+
+    return;
+}
 
 
 logParser.logMovement = function (parsedJson) { //, uniqueUsers) {
