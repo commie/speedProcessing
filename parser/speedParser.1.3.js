@@ -13,8 +13,8 @@ logParser.explicitLocations = [];
 logParser.locationArray;
 logParser.tweetPrototypes   = [];
 logParser.mdbCollection     = null;
-logParser.batchComplete;
-logParser.skippedTweets     = 0;
+// logParser.batchComplete;
+// logParser.skippedTweets     = 0;
 
 // sorting tweets
 logParser.sortedTweets      = [];
@@ -39,9 +39,9 @@ logParser.duplicateIdHashes = [{}]; // to avoid counting duplicate tweets as dup
 logParser.heteroMatrixSize  = 100;
 logParser.heteroMatrix      = new Array(logParser.heteroMatrixSize);
 
-logParser.heteroMatrix.forEach(function (value, i) {
+for (var i = 0; i < logParser.heteroMatrixSize; i++) {
     logParser.heteroMatrix[i] = new Array(logParser.heteroMatrixSize);
-});
+}
 
 logParser.job               = null;
 
@@ -63,6 +63,7 @@ logParser.job               = null;
 // logParser.filePath = '/Volumes/SanDisk64/distributedReader.2.0.minerThorin.2015.10.28.out';
 // logParser.filePath = '/Volumes/Tera/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
 logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+// logParser.filePath = '/media/aku/Data/andrei/movement/misc/sample.1gb.out';
 
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
@@ -132,19 +133,30 @@ logParser.init = function () {
             "end": function () {
 
                 batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".heteroMatrix.out";
+
+                var i, j, matrixCell;
+
+                for (i = 0; i < logParser.heteroMatrixSize; i++) {
+                    for (j = 0; j < logParser.heteroMatrixSize; j++) {
+
+                        matrixCell = logParser.heteroMatrix[i][j];
+
+                        if (matrixCell) {
+
+                            // tally up the matrix statistics
+                            matrixCell.uniqueUserCount      = Object.keys(matrixCell.uniqueUsers).length;
+                            matrixCell.recordToUserRatio    = matrixCell.movementRecordCount / matrixCell.uniqueUserCount;
+
+                            // print matrix contents
+                            batchPrinter.print(matrixCell.movementRecordCount + "\t" + matrixCell.uniqueUserCount + "\t" + matrixCell.recordToUserRatio + "\n");
+
+                        } else {
+
+                            batchPrinter.print(0 + "\t" + 0 + "\t" + 0 + "\n");
+                        }
+                    }
+                }
                 
-                logParser.heteroMatrix.forEach(function (matrixRow) {
-                    matrixRow.forEach(function (matrixCell) {
-
-                        // tally up the matrix statistics
-                        matrixCell.uniqueUserCount      = Object.keys(matrixCell.uniqueUsers).length;
-                        matrixCell.recordToUserRatio    = matrixCell.movementRecordCount / matrixCell.uniqueUserCount;
-
-                        // print matrix contents
-                        batchPrinter.print(matrixCell.movementRecordCount + "\t" + matrixCell.uniqueUserCount + "\t" + matrixCell.recordToUserRatio + "\n");
-                    });
-                });
-
                 // flush movement records buffer
                 batchPrinter.flush();
             }
@@ -688,7 +700,7 @@ logParser.readData = function (fileDesc) {
 
                     console.log((new Date).toLocaleTimeString() + " [SERVER] " + "[FATAL] " + "Exception in record #" + this.parsedTweets + " following tweet #" + lastTweetId + ": " + e);
                     console.log(unparsedTweets[i]);
-                    //break fileReaderLoop;
+                    break fileReaderLoop;
                 }
 
                 
@@ -1050,16 +1062,27 @@ logParser.calcMovementHeterogeneityMatrix = function (parsedJson) {
 
 
             // Place this movement record into the user heterogeneity matrix
-            var x = dist,
+            var x = dist + 1,
                 y = dur;
 
-            var xStep = 9.420376507528268 / (logParser.heteroMatrixSize -1),        // natural log of the max travelled distance
-                yStep = 14.800201719199531 / (logParser.heteroMatrixSize -1);       // natural log of the max travelled duration
+            var xStep = 9.420376507528268 / (logParser.heteroMatrixSize - 1),        // natural log of the max travelled distance
+                yStep = 14.800201719199531 / (logParser.heteroMatrixSize - 1);       // natural log of the max travelled duration
 
             var xBin = Math.floor(Math.log(x) / xStep),
                 yBin = Math.floor(Math.log(y) / yStep);
 
-            var currentRecord = logParser.heteroMatrix[xBin][yBin];
+            // try {
+
+                var currentRecord = logParser.heteroMatrix[xBin][yBin];    
+            
+            // } catch (e) {
+
+            //     console.log(Math.log(x), Math.log(y), xStep, yStep, xBin, yBin);
+            //     console.log(logParser.heteroMatrix[xBin]);
+            //     console.log(logParser.heteroMatrix[xBin][yBin]);
+            // }
+
+            
 
             if (currentRecord) {
 
