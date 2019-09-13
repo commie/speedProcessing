@@ -74,6 +74,13 @@ var duplicateLocations,
     dupLocationPrinter,
     userLocStatPrinter;
 
+var carLike,
+    planeLike,
+    topBlob,
+    edgeBlob,
+    centralBlob,
+    bottomRight;
+
 
 logParser.init = function () {
 
@@ -103,6 +110,56 @@ logParser.init = function () {
     uniqueLocationPrinter   = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".uniqueLocTest.out");
     dupLocationPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".dupLocTest.out");
     userLocStatPrinter      = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".userLocStatTest.out");
+
+    carLike         = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".carLike.out");
+    planeLike       = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".planeLike.out");
+    topBlob         = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".topBlob.out");
+    edgeBlob        = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".edgeBlob.out");
+    centralBlob     = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".centralBlob.out");
+    bottomRight     = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".bottomRight.out");
+
+    var selectMovementPrinter = function (movementRecord) {
+
+        var matchingPrinter;
+
+        if (movementRecord) {
+
+            var speed   = movementRecord.speed,
+                dist    = movementRecord.dist,
+                dur     = movementRecord.dur;
+
+            if (20 < speed && speed < 80 && 5 < dist && dist < 63) {
+
+                matchingPrinter = carLike;
+
+            } else if (300 < speed && speed < 800 && 2400 < dur && dur < 72000) {
+
+                matchingPrinter = planeLike;
+
+            } else if (dist < 30 && 32400 < dur && dur < 777600) {
+
+                matchingPrinter = topBlob;
+                
+            } else if (20 < dur && dur < 7200 && dist < 0.1) {
+
+                matchingPrinter = edgeBlob;
+                
+            } else if (235 < dur && dur < 7200 && 5 < dist && dist < 63) {
+
+                matchingPrinter = centralBlob;
+                
+            } else if (dur < 235 && 1200 < dist) {
+
+                matchingPrinter = bottomRight;
+                
+            } else {
+                
+                // skip record as its outside the blobs of interest
+            }
+        }
+
+        return matchingPrinter;
+    }
 
 
     // Set up the jobs
@@ -226,7 +283,38 @@ logParser.init = function () {
                 dupLocationPrinter.flush();
                 userLocStatPrinter.flush();
             }
-        };
+        },
+
+        movementRecordSeparation = {
+
+            "do": function (parsedJson) {
+
+                var movementObject = logParser.splitMovementRecordsIntoFiles(parsedJson),
+                    movementPrinter = selectMovementPrinter(movementRecord);
+
+                if (movementObject && movementPrinter) {
+                    movementPrinter.print(movementObject.movementString);
+                }
+
+            },
+
+            "end": function () {
+
+                // flush buffers
+                carLike.flush();
+                planeLike.flush();
+                topBlob.flush();
+                edgeBlob.flush();
+                centralBlob.flush();
+                bottomRight.flush();
+                
+            }
+        },
+
+
+
+
+        ;
 
     this.job = calcHeteroMovementMatrixJob;  // pick the current job
 
@@ -898,6 +986,149 @@ logParser.readData = function (fileDesc) {
     // }
     // console.log();
     
+}
+
+
+logParser.splitMovementRecordsIntoFiles = function (parsedJson) { //, uniqueUsers) {
+
+    var movementString  = "",
+        userId          = parsedJson.user.id_str,
+        returnObject    = null;
+
+    if (parsedJson.coordinates) {
+
+        var matchingUser = logParser.uniqueUsers[userId];
+
+        if (matchingUser) {
+
+            // Check for duplicates
+            if (matchingUser.twId === parsedJson.id_str) {
+                return;
+            }
+
+
+            // Calculate distance, duration and speed
+
+            var time1 = matchingUser.time,
+                time2 = Date.parse(parsedJson.created_at);// - 18000000;           // UTC - 5 hours (18,000,000 ms)
+
+            var lat1 = matchingUser.lat,
+                lon1 = matchingUser.lon,
+                lat2 = parsedJson.coordinates.coordinates[1],
+                lon2 = parsedJson.coordinates.coordinates[0];
+
+            var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
+
+            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
+            var dur  = (time2 - time1) / 1000.0;                                        // s
+            // var speed = Math.round(dist / dur);                                      // m/s
+            var speed = dist / (dur / 3600.0);                                          // MPH
+
+            var distStr  = dist.toFixed(6),
+                speedStr = speed.toFixed(6);
+
+
+            // Extract additional variables
+            var hashtags = "";
+            parsedJson.entities.hashtags.forEach(function (currentHashtag) {
+                hashtags += currentHashtag.text + " ";
+            });
+
+            var media = "";
+            if (parsedJson.entities.media && parsedJson.entities.media[0]) {
+                media = parsedJson.entities.media[0].media_url;
+            }
+
+            var userMention = "";
+            if (parsedJson.entities.user_mentions && parsedJson.entities.user_mentions[0]) {
+                userMention = true;
+            }
+
+
+            // Round them off
+
+            // dist  = Math.ceil(dist);
+            // speed = Math.ceil(speed);
+            
+
+            // Check for unusual speed records
+
+            var name = matchingUser.name,
+                msg = matchingUser.msg;
+
+            // if (speed == Infinity) {
+                
+            //     // infinity means division by 0 - no time elapsed between the two tweets
+            //     console.error("i|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+
+            // } else if (isNaN(speed)) {
+                
+            //     console.error("n|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+
+            // } else if (speed === 0) {
+
+            //     // 0 speeds mean 0 distance - no movement between the two tweets
+            //     console.error("z|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+
+            // } else {
+                
+            //     // Log movement record
+            //     // console.error(time2 + " " + dur + " " + dist + " " + speed + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2); // time1 + " " + time2 + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2
+
+            //     var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + cleanText + "\n";
+            //     batchPrinter.print(movementString);
+            // }
+
+            var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + distStr + "\t" + speedStr + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + userMention + "\t" + media + "\t" + hashtags + "\t" + cleanText + "\n";
+            // movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + distStr + "\t" + speedStr + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
+            // batchPrinter.print(movementString);
+
+            
+
+            // if (uniqueSpeeds[speed]) {
+            //     uniqueSpeeds[speed]++;
+            // } else {
+            //     uniqueSpeeds[speed] = 1;
+            // }
+
+            // if (speed > 2.5) {
+            //     console.log((new Date).toLocaleTimeString() + " [SERVER] " + "[SPEED] " + speed + " m/s");
+            // }
+
+            // Update user movement record
+            matchingUser.time    = time2;
+            matchingUser.lat     = lat2;
+            matchingUser.lon     = lon2;
+            matchingUser.msg     = cleanText;
+
+        } else {
+
+            // Create user movement record
+
+            logParser.uniqueUsers[userId] = {
+                twId:   parsedJson.id_str,
+                time:   Date.parse(parsedJson.created_at),// - 18000000,   // UTC - 5 hours (18,000,000 ms)
+                lat:    parsedJson.coordinates.coordinates[1],
+                lon:    parsedJson.coordinates.coordinates[0],
+                msg:    "", //cleanText,
+                name:   parsedJson.user.screen_name.replace(/\n|\t/g, " ")
+            };
+        }
+
+    }
+
+    if (movementString) {
+
+        var returnObject = {
+            "movementString":   movementString,
+            "speed":            speed,  // mph
+            "duration":         dur,    // sec
+            "distance":         dist    // mi
+        };
+
+    }
+
+    return returnObject;
 }
 
 

@@ -1,36 +1,43 @@
 Subsets
 
-car like
-	>20 mph
-	<80 mph
-	>5 m
-	< 63 m
+carLike
+    > 20 mph
+    < 80 mph
+    > 5 mi
+    < 63 mi
 
-plane like
-	>300 mph
-	<800 mph
-	> 2400 sec
-	> 72000 sec
+planeLike
+    > 300 mph
+    < 800 mph
+    > 2400 sec
+    > 72000 sec
 
-daily activity
-	<30 m
-	< 9 day
-	> 32400 sec
+topBlob
+    < 30 mi
+    < 777600 sec
+    > 32400 sec
 
-sitting still
-	>20 sec
-	< 0.1 m
+edgeBlob
+    > 20 sec
+    < 7200 sec
+    < 0.1 mi
 
 
--------------------
+centralBlob
+    < 7200 sec
+    > 235 sec
+    < 63 mi
+    > 5 mi
 
-central blob
-	< 7200 sec
-	> 235 sec
-	< 63m
-	> 5m
+bottomRight
+    < 235 sec 
+    > 1200 mi
 
-crazy speed
-	< 235 sec 
-	> 1200 m 
 
+
+carLike
+planeLike
+topBlob
+edgeBlob
+centralBlob
+bottomRight
