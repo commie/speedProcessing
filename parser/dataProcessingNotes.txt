@@ -71,5 +71,6 @@ extract top hashtag for clusters
 extract top 100 emoji for clusters
 
 image attachment (0,1)
+
 extract url
 

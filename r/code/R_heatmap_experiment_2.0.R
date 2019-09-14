@@ -226,11 +226,21 @@ y <- c(0,4.094344562,8.188689124,8.881836305,11.36674295,13.3126531,14.78173366,
 title = "DURATION-DISTANCE"
 
 ##############################################
-# class breaks for difference matrix heatmap #
+# class breaks for  other heatmaps           #
 ##############################################
+#difference matrix
+raw_breaks <- c(-9100,-4400,-2100,-1000,-500,-0.9,0.9,500,1000,2100,4400,9100) ## geometric series starting 500 with base of 2.063
 
-raw_breaks <- c(-9100,-4400,-2100,-1000,-500,-0.9,0.9,500,1000,2100,4400,9100) ## geometric series starting 500 with exp of 2.063
+#heterogeneity matrix — unique users 
+raw_breaks <- c(0.9,300,1110,4110,15200,55000) ## geometric series starting 300 with base of 3.7
+raw_breaks <- c(0.9,100,490,2400,11800,55000) ## geometric series starting 100 with base of 4.9
+raw_breaks <- c(0,0.9,100,170,290,490,835,1420,2415,4100,7000,11900,20200,34300,55000) ## geometric series starting 100 with base of 1.7
 
+
+#heterogeneity matrix — movement rec per unique user  ratio 
+raw_breaks <- c(0.9,10,30,80,220,600) ## geometric series starting 10 with base of ...
+raw_breaks <- c(0.9,2,8,35,150,600) ## geometric series starting 2 with base of 4.2
+raw_breaks <- c(0,0.9,2,3.2,5.2,8.,13,22,35,56,90,145,235,380,600) ## geometric series starting 2 with base of 1.61
 #################################################
 
 raw_breaks <- exp(class_breaks)
@@ -246,11 +256,23 @@ raw_breaks[2]=0.9
 # class_colors <- c("#CDCDCD","#F9E8FB","#E2D4F6","#CBC0EE","#B4ADE5","#9E9BD9","#8889CC","#7378BD","#5F67AC","#4B5799","#394786","#283871","#192A5B") #  SPEED AND DISTANCE
  class_colors <- c("#CDCDCD","#F9E8FB","#E0D2F5","#C6BCEC","#ADA8E1","#9594D4","#7D80C4","#676EB3","#515C9F","#3D4A8A","#2A3A73","#192A5B")  #    DURATION AND DISTANCE
 
-##############################################
-# class colors for difference matrix heatmap #
-##############################################
-
+####################################
+# class colors for other  heatmap #
+####################################
+#difference matrix
 class_colors <- c("#67001f","#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#053061")  #    DURATION AND DISTANCE","################################################
+
+#heterogeneity matrix — unique users 
+class_colors <- c("#f0f9e8","#bae4bc","#7bccc4","#43a2ca","#0868ac") #sequential&scheme=GnBu&n=5
+class_colors <- c("#CDCDCD","#F2FBB9","#D9EAA2","#C0D98C","#A9C878","#93B665","#7EA554","#6A9444","#588235","#477128","#37601C","#295012","#1C4008","#113001")
+
+#heterogeneity matrix — movement rec per unique user  ratio 
+class_colors <- c("#feebe2","#fbb4b9","#f768a1","#c51b8a","#7a0177") #sequential&scheme=RdPu&n=5
+class_colors <- c("#CDCDCD","#FDD7C7","#F7BFBE","#EEA8B4","#E392A9","#D67D9D","#C86991","#B75683","#A64476","#933367","#802358","#6B1449","#57073A","#41002A") # http://tristen.ca/hcl-picker/#/clh/13/106/113001/F2FBB9
+
+
+
+
 
 #draw heatmap
 image(binsx, binsy, freq2D, zlim=c(1, max(freq2D)), col= class_colors, breaks = raw_breaks)
