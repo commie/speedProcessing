@@ -125,8 +125,8 @@ logParser.init = function () {
         if (movementRecord) {
 
             var speed   = movementRecord.speed,
-                dist    = movementRecord.dist,
-                dur     = movementRecord.dur;
+                dist    = movementRecord.distance,
+                dur     = movementRecord.duration;
 
             if (20 < speed && speed < 80 && 5 < dist && dist < 63) {
 
@@ -290,7 +290,7 @@ logParser.init = function () {
             "do": function (parsedJson) {
 
                 var movementObject = logParser.splitMovementRecordsIntoFiles(parsedJson),
-                    movementPrinter = selectMovementPrinter(movementRecord);
+                    movementPrinter = selectMovementPrinter(movementObject);
 
                 if (movementObject && movementPrinter) {
                     movementPrinter.print(movementObject.movementString);
@@ -309,14 +309,9 @@ logParser.init = function () {
                 bottomRight.flush();
                 
             }
-        },
+        };
 
-
-
-
-        ;
-
-    this.job = calcHeteroMovementMatrixJob;  // pick the current job
+    this.job = movementRecordSeparation;  // pick the current job
 
 
 
