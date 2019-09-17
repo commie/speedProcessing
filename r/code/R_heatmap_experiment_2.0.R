@@ -10,7 +10,6 @@ fullData_all <- scan("D:/Andrei/movement_analysis/initial_movement/distributedRe
 
 
 selectedDataList <- list (duration = fullData[[4]], distance = fullData[[5]], speed = fullData[[6]])
-
 selectedDataList_un <- list (duration = fullData_un[[4]], distance = fullData_un[[5]], speed = fullData_un[[6]])
 selectedDataList_all <- list (duration = fullData_all[[4]], distance = fullData_all[[5]], speed = fullData_all[[6]])
 
@@ -132,6 +131,23 @@ for (i in 1:numRec) {
 ####################################################################################################################################################################################
 
 
+
+# bin records for user heterogeniety: unique user to movemet record count; uniuque user count using DURATION AND DISTANCE as axes ####################################################################### 
+binsx <- seq(0, distance_log_max, length=nBins)
+binsy <- seq(0, duration_log_max, length=nBins)
+
+#reading existing 100x100 matrix of unique users
+unique_users <- scan('C:/Users/a_k257/Documents/GitHub/speedProcessing/r/heterogeneity_heatmap/unique_users.txt') 
+unique_user_matrix <- matrix(unique_users,nrow = 100,ncol = 100, byrow = TRUE)
+
+#reading existing 100x100 matrix of unique users to movement records ratio
+ratio <- scan('C:/Users/a_k257/Documents/GitHub/speedProcessing/r/heterogeneity_heatmap/rec_per_user_ratio.txt')
+ratio_matrix <- matrix(ratio,nrow = 100,ncol = 100, byrow = TRUE)
+
+
+
+#####################################################################################################################################
+
 # bin records for unique and duplicate files using DURATION AND DISTANCE as axes ####################################################################### 
 binsx <- seq(0, distance_log_max, length=nBins)
 binsy <- seq(0, duration_log_max, length=nBins)
@@ -143,41 +159,43 @@ numRec_un <- nrow(filteredData_un)
 numRec_dup <- nrow(filteredData)
 
 for (i in 1:numRec_un) {
-
-	distance_log	<- filteredData_un$distance_log[i];
-	duration_log 	<- filteredData_un$duration_log[i];
-	
-	if (distance_log && duration_log ) {
-
-		# 
-		xBin <- findInterval(distance_log, binsx);
-		yBin <- findInterval(duration_log, binsy);
-		
-
-		freq2D_un[xBin, yBin] <- freq2D_un[xBin, yBin] + 1;
-	}
+  
+  distance_log	<- filteredData_un$distance_log[i];
+  duration_log 	<- filteredData_un$duration_log[i];
+  
+  if (distance_log && duration_log ) {
+    
+    # 
+    xBin <- findInterval(distance_log, binsx);
+    yBin <- findInterval(duration_log, binsy);
+    
+    
+    freq2D_un[xBin, yBin] <- freq2D_un[xBin, yBin] + 1;
+  }
 }
 
 for (i in 1:numRec_dup) {
-
-	distance_log	<- filteredData$distance_log[i];
-	duration_log 	<- filteredData$duration_log[i];
-	
-	if (distance_log && duration_log ) {
-
-		# 
-		xBin <- findInterval(distance_log, binsx);
-		yBin <- findInterval(duration_log, binsy);
-		
-
-		freq2D_dup[xBin, yBin] <- freq2D_dup[xBin, yBin] + 1;
-	}
+  
+  distance_log	<- filteredData$distance_log[i];
+  duration_log 	<- filteredData$duration_log[i];
+  
+  if (distance_log && duration_log ) {
+    
+    # 
+    xBin <- findInterval(distance_log, binsx);
+    yBin <- findInterval(duration_log, binsy);
+    
+    
+    freq2D_dup[xBin, yBin] <- freq2D_dup[xBin, yBin] + 1;
+  }
 }
 
 ## calculate matrix difference
 freq2D_diff <- freq2D_dup - freq2D_un
 
 #####################################################################################################################################
+
+
 
 # histogram 
 raw_hist <- hist(freq2D[freq2D > 0], 100)
@@ -228,6 +246,7 @@ title = "DURATION-DISTANCE"
 ##############################################
 # class breaks for  other heatmaps           #
 ##############################################
+
 #difference matrix
 raw_breaks <- c(-9100,-4400,-2100,-1000,-500,-0.9,0.9,500,1000,2100,4400,9100) ## geometric series starting 500 with base of 2.063
 
@@ -235,7 +254,6 @@ raw_breaks <- c(-9100,-4400,-2100,-1000,-500,-0.9,0.9,500,1000,2100,4400,9100) #
 raw_breaks <- c(0.9,300,1110,4110,15200,55000) ## geometric series starting 300 with base of 3.7
 raw_breaks <- c(0.9,100,490,2400,11800,55000) ## geometric series starting 100 with base of 4.9
 raw_breaks <- c(0,0.9,100,170,290,490,835,1420,2415,4100,7000,11900,20200,34300,55000) ## geometric series starting 100 with base of 1.7
-
 
 #heterogeneity matrix — movement rec per unique user  ratio 
 raw_breaks <- c(0.9,10,30,80,220,600) ## geometric series starting 10 with base of ...
@@ -284,7 +302,19 @@ abline(h= y, v=x, col = rgb(1,1,1, 0.4 , maxColorValue = 1))
 image(binsx, binsy, freq2D_diff,  col= class_colors, breaks = raw_breaks)
 title(main = title, font.main = 4)
 abline(h= y, v=x, col = rgb(1,1,1, 0.4 , maxColorValue = 1))
+abline(h= y, v=x, col = rgb(1,1,1, 0.4 , maxColorValue = 1))
 
+#draw heatmap for unique user matrix
+title = "DURATION-DISTANCE, unique user counts"
+image(binsx, binsy, unique_user_matrix,  col= class_colors, breaks = raw_breaks)
+title(main = title, font.main = 4)
+abline(h= y, v=x, col = rgb(1,1,1, 0.4 , maxColorValue = 1))
+
+
+#draw heatmap for movement rec per unique user  ratio matrix
+image(binsx, binsy, ratio_matrix,  col= class_colors, breaks = raw_breaks)
+title(main = title, font.main = 4)
+abline(h= y, v=x, col = rgb(1,1,1, 0.4 , maxColorValue = 1))
 
 #draw lines of equal speed
 
