@@ -1,0 +1,20 @@
+1) how was produced
+2) Class brakes with units
+3) color rapms
+
+DUR-DIST_grid 
+DUR-DIST_grid_dup 
+DUR-DIST_grid_unique
+DUR-DIST_dup_un_diff
+Heterogeneity_mov_rec_to_unique_user_ratio - add grid
+Heterogeneity_mov_rec_to_unique_user_ratio_13_classes - add grid
+Heterogeneity_unique_user_count
+Heterogeneity_unique_user_count_13_classes
+
+---------------
+Keyword summary
+1) blob borders with units
+2) blob sample results
+	- classes
+	- percentage
+	- salient examples 3-5 for class 

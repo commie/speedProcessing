@@ -1,0 +1,352 @@
+1) how was produced
+2) Class brakes 
+3) units
+4) color rapms
+
+DUR-DIST_grid 
+1)the amount of movement records (2 consequent geotagged tweets) 
+2)1.040024,1.834502,2.62898,3.423458,4.217936,5.012414,5.806892,6.60137,7.395848,8.190326,8.984804,9.779282
+3)natural log of movement record counts
+4)#F9E8FB,"#E0D2F5","#C6BCEC","#ADA8E1","#9594D4","#7D80C4","#676EB3","#515C9F","#3D4A8A","#2A3A73","#192A5B"
+
+DUR-DIST_grid_dup 
+1)the amount of movement records (2 consequent geotagged tweets) that have dulpicate locations (each reported location appears at least twice in the collection of tweets)
+2)the same as DUR-DIST_grid 
+3)the same as DUR-DIST_grid 
+4)the same as DUR-DIST_grid 
+
+DUR-DIST_grid_unique
+1) the amount of movement records (2 consequent geotagged tweets) that don't have dulpicate locations (each reported location appears only once) 
+2) the same as DUR-DIST_grid 
+3) the same as DUR-DIST_grid 
+4) the same as DUR-DIST_grid 
+
+DUR-DIST_dup_un_diff
+1) duplicate location movement records count heatmap minus unique locations movement records count 
+2) -9100,-4400,-2100,-1000,-500,-0.9,0.9,500,1000,2100,4400,9100
+3) number of movement records
+4) #67001f,"#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#053061"
+
+Heterogeneity_mov_rec_to_unique_user_ratio - add grid
+1) the number of movement records to the number unique users ratio 
+2) 0.9,2,8,35,150,600
+3) ratio
+4) #feebe2,"#fbb4b9","#f768a1","#c51b8a","#7a0177"
+
+Heterogeneity_mov_rec_to_unique_user_ratio_13_classes - add grid
+1) the number of movement records to the number unique users ratio
+2) 0.9,2,3.2,5.2,8.,13,22,35,56,90,145,235,380,600
+3) ratio
+4) #FDD7C7,"#F7BFBE","#EEA8B4","#E392A9","#D67D9D","#C86991","#B75683","#A64476","#933367","#802358","#6B1449","#57073A","#41002A"
+
+Heterogeneity_unique_user_count
+1) the amount of unique users
+2) 0.9,300,1110,4110,15200,55000
+3) number of users
+4)#f0f9e8,"#bae4bc","#7bccc4","#43a2ca","#0868ac"
+
+Heterogeneity_unique_user_count_13_classes
+1) the amount of unique users
+2) 0.9,100,170,290,490,835,1420,2415,4100,7000,11900,20200,34300,55000
+3) number of users
+4) #F2FBB9,"#D9EAA2","#C0D98C","#A9C878","#93B665","#7EA554","#6A9444","#588235","#477128","#37601C","#295012","#1C4008","#113001"
+
+---------------
+
+1) blob borders with units
+
+carLike
+    > 20 mph
+    < 80 mph
+    > 5 mi
+    < 63 mi
+
+planeLike
+    > 300 mph
+    < 800 mph
+    > 2400 sec
+    > 72000 sec
+
+topBlob
+    < 30 mi
+    < 777600 sec
+    > 32400 sec
+
+edgeBlob
+    > 20 sec
+    < 7200 sec
+    < 0.1 mi
+
+
+centralBlob
+    < 7200 sec
+    > 235 sec
+    < 63 mi
+    > 5 mi
+
+bottomRight
+    < 235 sec 
+    > 1200 mi
+
+
+2) blob sample results
+
+carLike
+    
+    86% jobs + ads
+
+    	Can you recommend anyone for this #job? Sales Proposal Specialist - Sr. Associate - https://t.co/sKhypBW59r #Sales #Quincy, MA #Hiring
+		Up to 65% Off at Myke at High Rize Hair Salon https://t.co/ze6acxDso3
+		Unlimited commissions. That's a smart choice. Join HC the #McLean, VA team as a Hair Stylist - 00474 - HC TYSONS CO… https://t.co/0TpAqPSyB4
+		We're #hiring! Read about our latest #job opening here: Food Service Cook - https://t.co/rMqvGb4rvA #Hospitality #Woodruff, SC
+		This #job might be a great fit for you: Obstetrician / Gynecologist - Physician - Locum Tenens -… https://t.co/5WjyazxLXD
+
+
+    2% chek ins
+    	I'm at McCarran International Airport - @lasairport in Las Vegas, NV https://t.co/bVGb4zEzFp
+		I'm at Oklahoma / Texas Border in Denison, TX https://t.co/Nb0Yj2yYcf
+		I'm at Interstate 10 at Exit 126 in Goodyear, AZ https://t.co/zDMKug33vb
+
+
+    3% regular tweet
+
+	    This year G3 is on the Synchronized Skating Team. She is also required to take Advanced Figure… https://t.co/pOlQlEcnee
+		after party, i mean after work... 😅😥💨 #latepost #lastnight #gold @… https://t.co/yMGWWBRg2Q
+		Need this in my life right now 😩 please tell me I can come get some today murraysfishandjerkhut… https://t.co/LjOEz5l6VS
+		#Pablo #Coming🔜 🌊🌊🌊 @ East Louisville, Louisville, Kentucky https://t.co/nfvxOfm0BB
+		At the #GeorgeRBrown ready with camera in hand. #PowerCamMedia #toysfortots #2017 #HappyHolidays… https://t.co/uxwLfGrx6m
+
+
+    4% non english
+
+	    Con mi Abuelita 👵💙🚙  #Lima #Navidad #boy #Instagram #like4like #follow4follow #l4l #love #cool… https://t.co/umU5suhb17
+	    Ollha ela 😍 na vitrine da @cea_brasil em Niterói em Plaza Niterói https://t.co/dfwtzCuFAW
+	    02:25 en Pudahuel Fuego en pasto y/o basura (10-2) B8 Rtda General Oscar Bonilla y La Estrella https://t.co/8MITRRYuh8
+	    Acabou de publicar uma foto em Igreja Evangelica Batista Nova Esperança https://t.co/QTor7cHiNp
+
+
+    6% automatic
+    	Disabled vehicle in #CrownPoint on Independence BLVD at Sardis Rd N #traffic https://t.co/FWT2jwReVT
+		Property Damage Collision  Santamonica Blvd &amp; Santamonica Blvd  [HP]  11/30 21:22  #Scarborough #Toronto
+		Accident on I-94 EB at Calhoun Rd #traffic https://t.co/nohdC1mdJZ
+		Fire (commercial/industrial) [North York] Keele Street b/w Gracefield Avenue / Maple Leaf Drive Dispatched: 30/12/1… https://t.co/NupIoN0ssB
+		USGS reports a M0.33 #earthquake 6km SW of Anza, CA on 12/25/17 @ 19:06:23 UTC https://t.co/wkBAC1NaJc #quake
+		THEFT - PRIORITY at 2000 BLOCK OF N KILLINGSWORTH ST, PORTLAND, OR [Portland Police #PP17000411844] 01:22 #pdx911
+
+
+planeLike
+	   
+	   53% jobs + ads
+		   	We're #hiring! Click to apply: Yard Worker / Truck Driver - https://t.co/QrQOdsC4Kl #Transportation #PlumCoulee, MB #Job #Jobs
+			If you're looking for work in #SheboyganFalls, WI, check out this #job: https://t.co/ChrjVbu9qm #CPG #Retail #Veterans #Hiring
+			Join the Reyes Beverage Group team! See our latest #job opening here: https://t.co/fE3AJenXrp #trucker #Doral, FL #Hiring
+			Ready to fly into the New Year? 🐘🎪 Take 15% all of our already marked-down tees and all of our… https://t.co/e9FAC22nNK
+			Carlsbad, California - $1,496,250 USD https://t.co/nNjAWZE7Uy https://t.co/iOIm1y7A97
+			Can you recommend anyone for this #job? RN Case Manager for Primary Care Clinic - https://t.co/C4WpwYLCGn #Nursing… https://t.co/6W8dZPZ5Ts
+
+
+	   21% regular twet
+
+		   Morning Coffee.#landroverdiscovery #landrover #discovery #overland #eastcoast #gearlocker… https://t.co/LZSjrZTBaR
+		   I’ve been dreaming of a white Christmas and here I am celebrating one with my loved ones. @… https://t.co/1DOwW78WeZ
+		   As we finish out the final days of 2017 - I can’t help but to think about some of the awesome… https://t.co/PSgMiVq8jh
+		   Just took part in a street show - was a human jumping obstacle @ W New York - Times Square https://t.co/H11O2KV9SH
+
+
+	   15% non english
+
+			Acciones del grupo Elite del serenazgo de Independencia en Ancash Region https://t.co/vtdT0ByXbs
+			Se tem mais lindo desconheço! O pôr do sol, é claro! em Punta Ballena https://t.co/mwGe3t5RQl
+			Tu lugar preferido en el mundo jaja 😂 #m&amp;m #newyork en Times Square, New York City https://t.co/E8sIHMc0GM
+			Ajaaaaa!!! Jajajjajajajjajajajajja cash money 💸💰👌🏻😂😂😂😂😂😂 #Mimisma #RiendomeDeMimisma en MONEY https://t.co/cAx0pJ4Zym
+			#mood @STONERZaDARK #shitrealstonerzdo #пиар #пиаригра #подписчики#взаимнаяподписка #лайк… https://t.co/Ho85r9dLs5
+
+
+	   7% airport related
+	  		Hello #Denver Flight 1 is done. @ Denver International Airport https://t.co/N9AXmwshts
+			I'm at Orlando International Airport - @mco in Orlando, FL https://t.co/mOfdlTPjgX
+			Home. (@ Comodoro Arturo Merino Benitez International Airport - @aeropuerto_scl in Pudahuel, Región Metropolitana) https://t.co/taZ378gjyl
+			Longer then expected but safe landing #United (@ Newark Liberty International Airport in Newark, NJ) https://t.co/5CrKadrZrb
+			Hello Chicago. // One more leg tonight to LR...and a lot of… https://t.co/GoQ6d6BPPh
+
+
+	   5% automtic
+			1 Northern Shrike (Lanius borealis) - Indian Route 8031, Pinon US-AZ (36.1027,-110.2719) - 2017-12-08 16:33 https://t.co/7WpAI66yem
+			【Mw3.3】COLOMBIA SEPTENTRIONAL 146km 23/12/2017 09:12:09 UTC #Sismo #Terremoto (G)https://t.co/6HFf199MWM (EMSC)https://t.co/3B76u14aag
+			Mag: 5.6 - Depth: 38 km - UTC 3:54 AM - Near Coast Of Northern Chile - GEOFON Info: https://t.co/CA0OBaSoBX
+			USGS reports a M1.4 #earthquake 55km WNW of Beatty, Nevada on 12/22/17 @ 3:02:56 UTC https://t.co/zrtn64wdee #quake
+			Good morning, Santiago! :) #Sunrise 06:28, noon 13:39, sunset 20:50 UTC-3, December 17. Day length: 14h 22m.
+
+
+
+
+topBlob
+ 		43% regular tweet
+ 			My bestie bestie❤️ @ Theodore High School https://t.co/1DGHO0ECDQ
+			Tastes like Christmas - Drinking a Gingerbread Stout by @McFateBrewCo at @fatebrewco  — https://t.co/glKOxhigYC
+			- I do not worry about what may happen tomorrow. I take care of what I'm doing right now, here.… https://t.co/87ssl7d3X2
+			Life has shaken up the proverbial #applecart for me in 2017. As I️ just said to a dear friend.… https://t.co/ZxIu4X54es
+			Mood going into 2018. 💎Come pop bottles with me and the sexy savages at diamondsofcharlotte… https://t.co/19U2Dp01Jj
+
+
+ 		10% check in
+ 			I'm at Sumaúma Park Shopping - @sumaumaparkshop in Manaus, Amazonas https://t.co/x2fcisal9h
+			I'm at Chili’s in Miraflores, Lima https://t.co/TgfCbDzLgW
+			I'm at MyHome https://t.co/M2pgU46fCP
+
+ 		29% non english
+	 		Buenas tarde ! #true #mipuntodevista #nalgonasfan @ Madison Heights,… https://t.co/8Heg9NO5ao
+			Navidad 2017 #familiacasasaguirre💖🐾 #familiaseguraruiz💞💖 en Bogotá,… https://t.co/UpD8f64mok
+			最終日朝 飛行機に乗り遅れるのにビビりながら朝フリマ 場所: The Roadium Open Air Markethttps://www.instagram.com/p/Bcm0w-CAsFq/
+			Esse lugar é maravilhoso!!!! 😍😍😍😍😍😍⛱️👙 Melhor dia !! 🔥 https://t.co/Y8BywgN3VI
+			Praça Portugal, uma das mais lindas do Brasil, não, do mundo, do Universo.  salles_mae… https://t.co/bqNH0iN9MO
+
+
+ 		12% ads and jobs
+	 		We're #hiring! Read about our latest #job opening here: System Capacity Engineer - https://t.co/bBiBNEoXZW… https://t.co/0O9M3Q6wUx
+			The High Society Club now accepts bitcoin for membership payment! Join The List for $100 or… https://t.co/GqHanhYkJD
+			See our latest #Hamden, CT #job and click to apply: Accounting Clerk - https://t.co/ntZP52snXI #Accounting #Hiring #CareerArc
+			If you're looking for work in #BuffaloGrove, IL, check out this #job: https://t.co/ZH0jgc2VYa #QA #Hiring #CareerArc
+			Want to work at Booz Allen? We're #hiring in #Washington, DC! Click for details: https://t.co/zZgGh1Lgg2 #BoozAllen… https://t.co/WX6ESgJjrm
+
+
+ 		3% automatic
+ 			West Haven CT Wed Dec 20th PM Forecast: TONIGHT Mostly Clear Lo 21 THURSDAY Sunny Hi 35
+			Beecherstown PA Wed Dec 13th PM Forecast: TONIGHT Snow Lo 21 THURSDAY Mostly Cloudy Hi 31
+			Riverdale NY Fri Dec 15th AM Forecast: TODAY Snow Hi 29 TONIGHT Snow Lo 25
+			Carroll Valley PA Fri Dec 22nd AM Forecast: TODAY Mostly Cloudy Hi 49 TONIGHT Rain Lo 41
+			Hoffman Estates IL Fri Dec 29th PM Forecast: TONIGHT Snow Lo 5 SATURDAY Partly Sunny Hi 7
+
+ 		3% hasgtags only
+	 		#fresh #ground #chicken #tandoori #spice #burger #burgernight #school #dinner @flikisdining… https://t.co/REq4bJr9Uu
+	 		🦄  #japanego #negro #beard #gordinho #man #meuovo #bear #glasses  #peitinho #black #relax… https://t.co/6wgopf4HDg
+	 		#hollywood #onset #comedy #funny #filmshoot #filming #setlife #shooting #photo #photoshooting… https://t.co/INjIJrdPpu
+	 		#hotrod #vintage #chevy #custom #classiccar #lowrider #bagged #classic #slammed #oldschool… https://t.co/CL7vqP32pW
+
+
+
+
+edgeBlob
+    	29% regular tweet
+    		#soccer Talk of Real Madrid sacking Zinedine Zidane is 'comical' - Thierry Henry https://t.co/IpvGFkmomY #Story… https://t.co/gQfSsIQ2qk
+    		@Reuters I hope they pass it!It will bring the GOP down for the mid elections in 18
+    		A surprising brown Ale with cinnamon and brown sugar. - Drinking a Katrina by @ScarletLaneBrew @ Market House Inn… https://t.co/A7mwGn8H6U
+			Core work offseason grind warmup throws w the college &amp; high school… https://t.co/bsGqxhh1ba
+			Current situation! Loving it! @ United States Capitol https://t.co/uuaFytU7Hg
+
+    	4% check in + picture postings
+    		Just posted a photo @ San Antonio, Texas https://t.co/vc8pTzPJOj
+    		Just posted a photo @ Charleston Veterinary Referral Center https://t.co/TtHRf4DChX
+    		I'm at Escola Josefina Becker https://t.co/nDFs37ANeb
+			I'm at Jack's Brewing Co. in Fremont, CA https://t.co/Zx6XEl4WTL
+
+
+    	28% non english
+	    	Beso al 🐒 en Centro Historico de Guadalajara https://t.co/5O6z0TsVA9
+	    	Clienta feliz Linda swtdms con su maxifalda de #modaloretosaez… https://t.co/ZhLGs1a3cg
+	    	Embarcando no metro paulistano em direção a um destino desconhecido! em Term. Rod. Barra Funda https://t.co/V3Q9XXlP7v
+	    	Ya no lo quiero ver más
+
+    	26% jobs and ads
+			Can you recommend anyone for this #job in #SanAntonio, TX? https://t.co/rBp98s8TDJ #Retail #Hiring #CareerArc
+			Do you know anyone who wants to be a #CNA? Have a look at this #job in #Gaithersburg, MD! https://t.co/RenSwwieYi… https://t.co/dgw7uuiY5I
+			GREAT PROMOTION ON ILIPO LASER 30% OFF ON ANY CELLULITE TREATMENT. BOOK YOUR APPOINTMENT AT 201… https://t.co/9FklB0RRc4
+			If you're looking for work in #Southfield, MI, check out this #job: https://t.co/KKVLJ5bxc1 #publishing #ProductMgmt #Hiring
+			Join the Mercy team! See our latest #job opening here: https://t.co/aXgKje9aiN #CustomerService #Springfield, MO #Hiring #CareerArc
+
+
+    	12% automatic
+	    	"Donald J.TRUMP is my President"! and the Temputure in Crab Orchard is: 18.8°F, Wind:3.4mph, Forcast is: Settled fine
+	    	Cleared: Incident on #NY12 NB at north of Kattelville Road
+	    	Lowell: 4:11pm: sunset
+			MONARCH PASS (CDOT),CO (MYP) ASOS reports gust of 55 knots (63.3 mph) from W @ 0231Z
+			Wind 2,7 kts W. Barometer 1018,9 hPa, Falling. Temperature 31,6 °C. Rain today 0,0 mm. Humidity 65%
+
+    	2% coded
+			near blender: f3ae2873-3636-4250-921f-855617cbd39b
+			near blender: f7e57db0-2eef-4937-b423-7ec028f8fe2a
+			TEST_LAT/LON: 0c20d27b-171c-4c9f-85d9-2e9594bca8b1
+
+
+
+centralBlob
+	
+	2.9% checks in and image posts
+
+		I'm at Continental Kosher Bakery in Valley Village, CA w/ @jaredbaker03 https://t.co/jWIeChPzEP
+		I'm at Stanford Shopping Center in Palo Alto, CA https://t.co/QOOFT0bXs8
+		Just posted a photo @ Noah Purifoy Outdoor Desert Art Museum https://t.co/qAUit3moH7
+
+	83% job postings and ads
+
+		Can you recommend anyone for this #job? Dental Hygiene Clinic Instructor - https://t.co/wspoeBHBEd #Healthcare… https://t.co/2llLuv6AbB
+		This #job might be a great fit for you: Sales Associate - https://t.co/YfzGnNFpoc #Retail #Slidell, LA #Hiring #CareerArc
+		We're #hiring! Click to apply: Driver - https://t.co/0QAFWu9ARf #Transportation #WestChester, PA #Job #Jobs #CareerArc
+		If you're looking for work in #Larchmont, NY, check out this #job: https://t.co/9HQAdh2O4G #Healthcare #Hiring #CareerArc
+		I am looking for a buyer on 415  Graham Rd #Anderson #SC  #realestate https://t.co/UHB0KFFaUF https://t.co/p7DKG9hIdI
+
+	3.6% regular tweet
+
+		They don't wanna 👀 U Livingggg! #DEADASS Though #CorepersonalTraining #HealthisWealth… https://t.co/gLO6gYsvyu
+		Monday gymmmming🏋🏽‍♂️ Do it with passion or not at all. Book your personal chef 👨🏾‍🍳… https://t.co/fOWlhfSsuI
+		Worked hard all day. Recovering from two days of fever. Finished the Pointers Canvas.
+		And it begins!!!! #birthdayteaparty @ The Langham, Chicago https://t.co/403pFYvLxA
+		I can go back to #brunch now?? #nofilter goodness in #Sonoma @ The Fremont Diner https://t.co/hYlu8zJPd6
+
+
+	4.6% non english
+###### Just noticed, that many non eng tweets in this blob (and in car like) start with time. looks lime some departure scedule, busses maybe ?
+
+		¿Cuántas veces puedo ocupar el viaje gratis del Metro?
+		19:14 en Peñalolén Emanación de gas (10-6)  Pasaje Quito y General Baquedano https://t.co/U6dSXGTG4I
+		A melhor companhia pros melhores momentos. #comela em Luck's https://t.co/kcoJjiZ34b
+		Hoy me puteo a un weon 😒 (@ Dhl Supply Chain Enea in Pudahuel, Región Metropolitana) https://t.co/IIDmOjjt4d
+		22:07 en Maipú 10-2 BX3 Avenida Los Pajaritos y Camino a Melipilla https://t.co/C1vRu6ZewA
+
+
+	5.9% automatic reports
+
+		Accident, left lane blocked in #Lakewood on I-5 NB after WA-512, stop and go traffic back to Bridgeport Wy, delay of 5 mins #traffic
+		Closed in #AreaOfTheStatenIslandCrossingsVzUpper on The Verrazano Brg Upper Level EB between Staten Island Side and Bklyn Side #traffic
+		DISTURBANCE - WITH WEAPON *H at 8000 BLOCK OF SE LAFAYETTE ST, PORTLAND, OR [Portland Police #PP17000397890] 05:32 #pdx911
+		overcast clouds -&gt; clear sky temperature down 51°F -&gt; 44°F humidity up 81% -&gt; 87% wind 7mph -&gt; 4mph
+		USGS reports a M1 #earthquake 11km E of Borrego Springs, California on 12/26/17 @ 6:15:32 UTC https://t.co/sKMnGJIP5S #quake
+
+
+bottomRight
+
+	34% coded
+		[23:56:48] 162.243.147.225:45873 &gt;&gt; :119 (TCP:SYN)
+		01b6136c5b4723c3b71a7e92078985569793d6d6ad1a506b64471b809ab0d2e01bc8816b88e3ec00a68e7669e22dddf5a522c3d7e4b3e501ba4c6463e01d01978753df000000
+		1aa6c2a3e52d76f92b467b2abb530b558c525fa870fe5ac7ab3d6d5ab57dee315cdde818ec029e0d19b3927f4cf69397a09d62df00fc533f72c138f14cd4014b09fdee000000
+
+
+	15% job postings and ads
+		Want to work at Zurich? We're #hiring in #Montreal, QC! Click for details: https://t.co/vQG4RCIDT6 #veteransmatter #bizdev #Job #Jobs
+		We're #hiring! Click to apply: Materials Handler PD 02001A - https://t.co/P8tMh1YfQn #FacilitiesMgmt #Tucson, AZ #Veterans #Job #Jobs
+		See our latest #Dallas, TX #job and click to apply: Physician (Surgical Oncologist) - https://t.co/eJgoi5xhS7 #Physician #Veterans #Hiring
+		If you're looking for work in #edmonton, check out this #job: https://t.co/kTSrX4DvLu #SupplyChain #Hiring https://t.co/bq5NmmgqDa
+
+
+	48% automatic reports
+		USGS reports a M0.8 #earthquake 17km ESE of Julian, CA on 12/13/17 @ 22:51:46 UTC https://t.co/lQWyp4zGlN #quake
+		USGS reports a M1.6 #earthquake 7km SW of Knik-Fairview, Alaska on 12/5/17 @ 15:50:39 UTC https://t.co/3wusbbiEv0 #quake
+		Good morning #Ojinaga! Sun will rise in 30 minutes (local time 06:45) #Sunrise #Photo #Photography [15.12.2017]
+		Je Reviendrai De Loin by Charles Aznavour is #nowplaying in Market Basket, Omaha.
+		Go #Dodge Edmonton is #nowplaying Legends by #SleepingWithSirens #cubevenue
+
+		
+	3% non english
+		Acaba de publicar una foto en Bogotá, Colombia https://t.co/Ynn9ES9eYP
+		Tortugas gigantes en la Isla Galápagos #ecuador #tortuga #islagalapagos #galapagos Síguenos en… https://t.co/H3SX61Hs1G
+		Uma chuva de bênçãos pra vc! 🙌🙏🎂👏👏 em Fé-licidade https://t.co/QL8wNT997u
+
+
+	1% regular+checkin+image postings
+		My Website will be available soon... 🇺🇸🇮🇷🎖 Logo designed by Rebecca.Z ©2017 🤘🤠🤘#drummer… https://t.co/butKeGyop9
+		Who knows what this is and where it is? #buildings #circle #architechture here’s a hint....#tech… https://t.co/Rw9YjkYknV
+		Just posted a photo @ US Virgin Islands https://t.co/ke6ljls5dR
+		I'm at Gogó da Alegria https://t.co/q8lY5R6PBk
+
+
+	

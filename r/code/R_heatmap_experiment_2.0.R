@@ -272,7 +272,7 @@ raw_breaks[2]=0.9
 
 # class_colors <- c("#CDCDCD","#F9E8FB","#E4D5F6","#CFC3F0","#BAB2E7","#A5A1DD","#9191D1","#7D80C4","#6A71B6","#5862A6","#475395","#364582","#27376F","#192A5B") # SPEED AND DURATION
 # class_colors <- c("#CDCDCD","#F9E8FB","#E2D4F6","#CBC0EE","#B4ADE5","#9E9BD9","#8889CC","#7378BD","#5F67AC","#4B5799","#394786","#283871","#192A5B") #  SPEED AND DISTANCE
- class_colors <- c("#CDCDCD","#F9E8FB","#E0D2F5","#C6BCEC","#ADA8E1","#9594D4","#7D80C4","#676EB3","#515C9F","#3D4A8A","#2A3A73","#192A5B")  #    DURATION AND DISTANCE
+ class_colors <- c("#CDCDCD","#F9Ev8FB","#E0D2F5","#C6BCEC","#ADA8E1","#9594D4","#7D80C4","#676EB3","#515C9F","#3D4A8A","#2A3A73","#192A5B")  #    DURATION AND DISTANCE
 
 ####################################
 # class colors for other  heatmap #
@@ -281,7 +281,7 @@ raw_breaks[2]=0.9
 class_colors <- c("#67001f","#b2182b","#d6604d","#f4a582","#fddbc7","#f7f7f7","#d1e5f0","#92c5de","#4393c3","#2166ac","#053061")  #    DURATION AND DISTANCE","################################################
 
 #heterogeneity matrix — unique users 
-class_colors <- c("#f0f9e8","#bae4bc","#7bccc4","#43a2ca","#0868ac") #sequential&scheme=GnBu&n=5
+class_colors <- c("#CDCDCD","#f0f9e8","#bae4bc","#7bccc4","#43a2ca","#0868ac") #sequential&scheme=GnBu&n=5
 class_colors <- c("#CDCDCD","#F2FBB9","#D9EAA2","#C0D98C","#A9C878","#93B665","#7EA554","#6A9444","#588235","#477128","#37601C","#295012","#1C4008","#113001")
 
 #heterogeneity matrix — movement rec per unique user  ratio 
