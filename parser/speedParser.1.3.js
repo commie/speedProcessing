@@ -219,6 +219,46 @@ logParser.init = function () {
             }
         },
 
+        calcLocationHeteroMatrixJob = {
+                        
+            "do": function (parsedJson) {
+
+                // populate user heterogeneity matrix
+                logParser.calcLocationHeterogeneityMatrix(parsedJson);
+            },
+            
+            "end": function () {
+
+                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".locationHeteroMatrix.out";
+
+                var i, j, matrixCell;
+
+                for (i = 0; i < logParser.heteroMatrixSize; i++) {
+                    for (j = 0; j < logParser.heteroMatrixSize; j++) {
+
+                        matrixCell = logParser.heteroMatrix[i][j];
+
+                        if (matrixCell) {
+
+                            // tally up the matrix statistics
+                            matrixCell.uniqueLocationCount      = Object.keys(matrixCell.uniqueLocations).length;
+                            matrixCell.recordToLocationRatio    = matrixCell.movementRecordCount / matrixCell.uniqueLocationCount;
+
+                            // print matrix contents
+                            batchPrinter.print(matrixCell.movementRecordCount + "\t" + matrixCell.uniqueLocationCount + "\t" + matrixCell.recordToLocationRatio + "\n");
+
+                        } else {
+
+                            batchPrinter.print(0 + "\t" + 0 + "\t" + 0 + "\n");
+                        }
+                    }
+                }
+                
+                // flush movement records buffer
+                batchPrinter.flush();
+            }
+        },
+
         uniqueLocationDetection = {
 
             "do": function (parsedJson) {
@@ -311,7 +351,7 @@ logParser.init = function () {
             }
         };
 
-    this.job = movementRecordSeparation;  // pick the current job
+    this.job = calcLocationHeteroMatrixJob;  // pick the current job
 
 
 
@@ -1251,6 +1291,115 @@ logParser.logDuplicateLocations = function (parsedJson) {
     }
 
 };
+
+
+logParser.calcLocationHeterogeneityMatrix = function (parsedJson) {
+
+    var userId = parsedJson.user.id_str;
+
+    if (parsedJson.coordinates) {
+
+        var matchingUser = logParser.uniqueUsers[userId];
+
+        var coordArray  = parsedJson.coordinates.coordinates,
+            locationKey = coordArray[0] + " " + coordArray[1];
+
+        if (matchingUser) {
+
+            // Check for duplicates
+            if (matchingUser.twId === parsedJson.id_str) {
+                return;
+            }
+
+
+            // Calculate distance, duration and speed
+
+            var time1 = matchingUser.time,
+                time2 = Date.parse(parsedJson.created_at);// - 18000000;           // UTC - 5 hours (18,000,000 ms)
+
+            var lat1 = matchingUser.lat,
+                lon1 = matchingUser.lon,
+                lat2 = parsedJson.coordinates.coordinates[1],
+                lon2 = parsedJson.coordinates.coordinates[0];
+
+            var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
+
+            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
+            var dur  = (time2 - time1) / 1000.0;                                        // s
+            // var speed = Math.round(dist / dur);                                      // m/s
+            var speed = dist / (dur / 3600.0);                                          // MPH
+
+
+            // Place this movement record into the user heterogeneity matrix
+            var x = dist + 1,
+                y = dur;
+
+            var xStep = 9.420376507528268 / (logParser.heteroMatrixSize - 1),        // natural log of the max travelled distance
+                yStep = 14.800201719199531 / (logParser.heteroMatrixSize - 1);       // natural log of the max travelled duration
+
+            var xBin = Math.floor(Math.log(x) / xStep),
+                yBin = Math.floor(Math.log(y) / yStep);
+
+            // try {
+
+                var currentRecord = logParser.heteroMatrix[xBin][yBin];    
+            
+            // } catch (e) {
+
+            //     console.log(Math.log(x), Math.log(y), xStep, yStep, xBin, yBin);
+            //     console.log(logParser.heteroMatrix[xBin]);
+            //     console.log(logParser.heteroMatrix[xBin][yBin]);
+            // }
+
+            
+
+            if (currentRecord) {
+
+                currentRecord.movementRecordCount++;
+                // currentRecord.uniqueUsers[userId] = true;
+                currentRecord.uniqueLocations[locationKey] = true;
+            
+            } else {
+
+                logParser.heteroMatrix[xBin][yBin] = {
+
+                    "movementRecordCount":  1,
+                    // "uniqueUsers":          {}
+                    "uniqueLocations":      {}
+
+                };
+
+                // logParser.heteroMatrix[xBin][yBin].uniqueUsers[userId] = true;
+                logParser.heteroMatrix[xBin][yBin].uniqueLocations[locationKey] = true;
+
+            }
+
+
+            // Update user movement record
+
+            matchingUser.time    = time2;
+            matchingUser.lat     = lat2;
+            matchingUser.lon     = lon2;
+            matchingUser.msg     = cleanText;
+
+        } else {
+
+            // Create user movement record
+
+            logParser.uniqueUsers[userId] = {
+                twId:   parsedJson.id_str,
+                time:   Date.parse(parsedJson.created_at),// - 18000000,   // UTC - 5 hours (18,000,000 ms)
+                lat:    parsedJson.coordinates.coordinates[1],
+                lon:    parsedJson.coordinates.coordinates[0],
+                msg:    "", //cleanText,
+                name:   parsedJson.user.screen_name.replace(/\n|\t/g, " ")
+            };
+        }
+
+    }
+
+    return;
+}
 
 
 logParser.calcMovementHeterogeneityMatrix = function (parsedJson) {
