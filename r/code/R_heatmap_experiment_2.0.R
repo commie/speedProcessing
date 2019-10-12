@@ -258,7 +258,7 @@ raw_breaks <- c(0,0.9,100,170,290,490,835,1420,2415,4100,7000,11900,20200,34300,
 #heterogeneity matrix — movement rec per unique user  ratio 
 raw_breaks <- c(0.9,10,30,80,220,600) ## geometric series starting 10 with base of ...
 raw_breaks <- c(0.9,2,8,35,150,600) ## geometric series starting 2 with base of 4.2
-raw_breaks <- c(0,0.9,2,3.2,5.2,8.,13,22,35,56,90,145,235,380,600) ## geometric series starting 2 with base of 1.61
+raw_breaks <- c(0,0.9,2,3.2,5.2,8.3,13,22,35,56,90,145,235,380,600) ## geometric series starting 2 with base of 1.61
 #################################################
 
 raw_breaks <- exp(class_breaks)
