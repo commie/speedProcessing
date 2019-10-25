@@ -57,20 +57,25 @@ Heatmaps for duplicate and unique locations
 Heatmap of duplicate - unique counts difference usinfg the grid generatd based on the total movement record file
 	DUR-DIST_dup_un_diff.png, svg
 
-TODO
+
 user heterogeneity for all data
 
 break into subsets
 	1) by visual density (clusters)
 	2) by transport modality (logical subset)
 
-extract Keywords, for clusters
-
 extract top hashtag for clusters
 
-extract top 100 emoji for clusters
+TODO
 
-image attachment (0,1)
+Filter top offenders from central blob and draw the remainder
+production grade figures (axis captions, grid line captions)
 
-extract url
+leterature survey (social media + speed of movements + data cleaning + similar projects)
 
+
+*TODO to the next article (hadoop)
+
+extract Keywords, for each cell in heatmap and apply clustering
+
+Time series of heatmaps (weakly, monthly, annualy)
