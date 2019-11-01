@@ -1,17 +1,20 @@
 ##    movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
+##    movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + distStr + "\t" + speedStr + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + userMention + "\t" + media + "\t" + hashtags + "\t" + cleanText + "\n";
 
 fullData <- scan("D:/Andrei/movement_analysis/movement_dup_n_uniqs/distributedReader.2.1.twitterCrawler01.2017.12.merged.uniqueLoc.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))  #duration, distance, speed
 
 
 fullData_dup <- scan("D:/Andrei/movement_analysis/movement_dup_n_uniqs/distributedReader.2.1.twitterCrawler01.2017.12.merged.dupLoc.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL))  #duration, distance, speed /new file from parser 1.3
 fullData_un <- scan("D:/Andrei/movement_analysis/movement_dup_n_uniqs/distributedReader.2.1.twitterCrawler01.2017.12.merged.uniqueLoc.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL))  #duration, distance, speed /new file from parser 1.3
-fullData_all <- scan("D:/Andrei/movement_analysis/initial_movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.movementOnly.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL))  #duration, distance, speed /new file from parser 1.3
+
+fullData_all <- scan("D:/Andrei/movement_analysis/initial_movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.movement.out", sep="\t", quote="",  what=list(NULL, NULL,  NULL, numeric(), numeric(), numeric(),NULL, NULL, NULL, NULL, NULL, NULL, NULL, character()))  #duration, distance, speed /new file from parser 1.3
 
 
 
 selectedDataList <- list (duration = fullData[[4]], distance = fullData[[5]], speed = fullData[[6]])
 selectedDataList_un <- list (duration = fullData_un[[4]], distance = fullData_un[[5]], speed = fullData_un[[6]])
-selectedDataList_all <- list (duration = fullData_all[[4]], distance = fullData_all[[5]], speed = fullData_all[[6]])
+
+selectedDataList_all <- list (duration = fullData_all[[4]], distance = fullData_all[[5]], speed = fullData_all[[6]], tweet = fullData_all[[14]])
 
 
 selectedDataFrame <- as.data.frame(selectedDataList)
@@ -24,6 +27,8 @@ filteredData <- selectedDataFrame[which(selectedDataFrame$duration > 0),]  #no n
 
 filteredData_un <- selectedDataFrame_un[which(selectedDataFrame_un$duration > 0),]  #no neg durations, speed, no Nan no Inf
 filteredData_all <- selectedDataFrame_all[which(selectedDataFrame_all$duration > 0),]  #no neg durations, speed, no Nan no Inf
+
+filtered_jobs <- filteredData_all[which(!(grepl('job', filteredData_all$tweet) | grepl('hiring', filteredData_all$tweet))),]
 
 # calculate log for each column
 filteredData$distance_log = log(filteredData$distance+1)
@@ -40,6 +45,11 @@ filteredData_all$distance_log = log(filteredData_all$distance+1)
 filteredData_all$speed_log = log(filteredData_all$speed+1) 
 filteredData_all$duration_log = log(filteredData_all$duration) 
 
+# calculate log for each column all filtered
+filtered_jobs$distance_log = log(filtered_jobs$distance+1)
+filtered_jobs$speed_log = log(filtered_jobs$speed+1) 
+filtered_jobs$duration_log = log(filtered_jobs$duration) 
+
 ################################################################
 
 #calculate max values
@@ -51,6 +61,11 @@ duration_log_max = max(filteredData$duration_log)
 distance_log_max = max(filteredData_all$distance_log)
 speed_log_max = max(filteredData_all$speed_log)
 duration_log_max = max(filteredData_all$duration_log)
+
+#calculate max values all filtered jobs
+distance_log_max = max(filtered_jobs$distance_log)
+speed_log_max = max(filtered_jobs$speed_log)
+duration_log_max = max(filtered_jobs$duration_log)
 
 
 # number of cells horizontalli and vertically
@@ -110,12 +125,12 @@ binsy <- seq(0, duration_log_max, length=nBins)
 
 freq2D <- diag(nBins)*0
 
-numRec <- nrow(filteredData)
+numRec <- nrow(filtered_jobs)
 
 for (i in 1:numRec) {
 
-	distance_log	<- filteredData$distance_log[i];
-	duration_log 	<- filteredData$duration_log[i];
+	distance_log	<- filtered_jobs$distance_log[i];
+	duration_log 	<- filtered_jobs$duration_log[i];
 	
 	if (distance_log && duration_log ) {
 
@@ -272,7 +287,7 @@ raw_breaks[2]=0.9
 
 # class_colors <- c("#CDCDCD","#F9E8FB","#E4D5F6","#CFC3F0","#BAB2E7","#A5A1DD","#9191D1","#7D80C4","#6A71B6","#5862A6","#475395","#364582","#27376F","#192A5B") # SPEED AND DURATION
 # class_colors <- c("#CDCDCD","#F9E8FB","#E2D4F6","#CBC0EE","#B4ADE5","#9E9BD9","#8889CC","#7378BD","#5F67AC","#4B5799","#394786","#283871","#192A5B") #  SPEED AND DISTANCE
- class_colors <- c("#CDCDCD","#F9Ev8FB","#E0D2F5","#C6BCEC","#ADA8E1","#9594D4","#7D80C4","#676EB3","#515C9F","#3D4A8A","#2A3A73","#192A5B")  #    DURATION AND DISTANCE
+ class_colors <- c("#CDCDCD","#F9E8FB","#E0D2F5","#C6BCEC","#ADA8E1","#9594D4","#7D80C4","#676EB3","#515C9F","#3D4A8A","#2A3A73","#192A5B")  #    DURATION AND DISTANCE
 
 ####################################
 # class colors for other  heatmap #

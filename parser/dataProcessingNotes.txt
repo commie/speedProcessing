@@ -66,10 +66,23 @@ break into subsets
 
 extract top hashtag for clusters
 
+Filter top offenders indetified in central blob and re-draw the complete dataset (#job, #hiring)
+total 7 753 380
+filtered 2 134 114
+remained 5 619 266
+created DUR-DIST_grid_no_jobs.png
+
 TODO
 
-Filter top offenders from central blob and draw the remainder
 production grade figures (axis captions, grid line captions)
+width 7.5 , 300dpi 2250px X 2250px TIF
+no title
+axis marks labels
+remove black axis
+speed labels (like on sashas slides)
+color classes legeng (vertical to the right)
+
+
 
 leterature survey (social media + speed of movements + data cleaning + similar projects)
 
