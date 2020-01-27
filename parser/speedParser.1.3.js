@@ -43,6 +43,11 @@ for (var i = 0; i < logParser.heteroMatrixSize; i++) {
     logParser.heteroMatrix[i] = new Array(logParser.heteroMatrixSize);
 }
 
+// keyword matching
+logParser.regularExpressions;
+logParser.regexMatches = {};
+logParser.matchingCount = 0;
+
 logParser.job               = null;
 
     // Data paths are relative to the current working directory in console,
@@ -72,7 +77,8 @@ logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twit
 var duplicateLocations,
     uniqueLocationPrinter,
     dupLocationPrinter,
-    userLocStatPrinter;
+    userLocStatPrinter,
+    emotionPrinter;
 
 var carLike,
     planeLike,
@@ -101,8 +107,18 @@ logParser.init = function () {
     // var duplicateFileName = filePath.slice(0, -4) + ".duplicates.out";
     // duplicates = require(duplicateFileName).duplicates;
 
+    // emotion printer
+    emotionPrinter          = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".emotion.out");
+
+    // keyword matching regexp
+    logParser.regularExpressions = [
+        /solitude/i,
+        /loneliness/i,
+        /lonely/i
+    ];
+
     // movement output
-    batchPrinter.fileName   = logParser.filePath.slice(0, -4) + ".movement.out";
+    batchPrinter.fileName   = logParser.filePath.slice(0, -4) + ".movement.out";    // batchPrinter is a custom object defined at the end of the file
 
     // intput and output for separating unique locations
     duplicateLocations      = require("./duplicateLocations.02.js").duplicateLocations;
@@ -349,9 +365,52 @@ logParser.init = function () {
                 bottomRight.flush();
                 
             }
+        },
+
+        emotionExtractionJob = {
+                        
+            "do": function (parsedJson) {
+
+                // log emotions
+
+                var tweetWithEmotion = logParser.matchKeywords(parsedJson);
+
+                if (tweetWithEmotion) {
+
+                    // form output object
+                    
+                    var outputObject = {
+                        lat:        parsedJson.coordinates.coordinates[1],    // assumes it's geographic
+                        lon:        parsedJson.coordinates.coordinates[0],
+                        name:       parsedJson.user.screen_name.replace(/\r\n|\r|\n|\t/g, " "),
+                        matches:    tweetWithEmotion.keywordMatches,
+                        text:       parsedJson.text.replace(/\r\n|\r|\n|\t/g, " "),
+                        media:      false
+                    };
+
+                    if (parsedJson.entities.media && parsedJson.entities.media[0]) {
+                        outputObject.media = parsedJson.entities.media[0].media_url;
+                    }
+
+                    // print results to file
+                    emotionPrinter.print(JSON.stringify(outputObject) + ",\n");
+                }
+
+                
+            },
+            
+            "end": function () {
+
+                // flush records buffer
+                emotionPrinter.flush();
+
+                // report count of matching records
+                console.log(JSON.stringify(logParser.regexMatches));
+                console.log("Total matching tweets: " + logParser.matchingCount);
+            }
         };
 
-    this.job = calcLocationHeteroMatrixJob;  // pick the current job
+    this.job = emotionExtractionJob;  // pick the current job
 
 
 
@@ -434,7 +493,7 @@ logParser.readData = function (fileDesc) {
         sortedLocations = [],
         coordCount = 0,
         profileLocationCount = 0,
-        matchingCount = 0,
+        // matchingCount = 0,
         rawLocationCount = 0;
 
     fileReaderLoop:
@@ -1021,6 +1080,78 @@ logParser.readData = function (fileDesc) {
     // }
     // console.log();
     
+}
+
+
+logParser.matchKeywords = function (parsedJson) {
+
+    var matchReturn;
+
+    if (parsedJson.coordinates) {
+
+        var lonFrom     = -125.0,   // contiguous US
+            lonTo       =  -66.0,
+            latFrom     =   24.0,
+            latTo       =   50.0;
+
+        // match by bounding box
+        if (lonFrom < parsedJson.coordinates.coordinates[0] && parsedJson.coordinates.coordinates[0] < lonTo &&
+            latFrom < parsedJson.coordinates.coordinates[1] && parsedJson.coordinates.coordinates[1] < latTo) {
+        
+        // if (true) {
+
+            // match by keywords
+
+            var tweetText = parsedJson.text,
+                currentRegEx,
+                resultsArray,
+                isMatching,
+                matchedKeyword;
+
+            isMatching = false;
+
+            for (var k = 0; k < logParser.regularExpressions.length; k++) {
+
+                currentRegEx = logParser.regularExpressions[k];
+
+                resultsArray = null;
+                resultsArray = currentRegEx.exec(tweetText);
+
+                if (resultsArray) {
+
+                    isMatching = true;
+                    matchedKeyword = resultsArray[0];
+
+
+                    // Make a record of which keywords were matched in this tweet
+                                    
+                    if (!parsedJson.keywordMatches) {
+                        parsedJson.keywordMatches = {};
+                    }
+
+                    parsedJson.keywordMatches[matchedKeyword] = true;
+
+
+                    // Count the total number of matches for each keyword
+
+                    if (!logParser.regexMatches[matchedKeyword.toLowerCase()]) {
+                        logParser.regexMatches[matchedKeyword.toLowerCase()] = 0;
+                    }
+
+                    logParser.regexMatches[matchedKeyword.toLowerCase()]++;
+                }
+            }
+
+            if (isMatching) {
+
+                matchReturn = parsedJson;
+
+                logParser.matchingCount++;    // only count a matching tweet once, even for multiple matches
+            }
+        }
+    }
+
+    return matchReturn;
 }
 
 
