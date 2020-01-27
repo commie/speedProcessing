@@ -31,11 +31,11 @@ int mapHeight;
 
 // ////////////////////////////////////////////////////////
 
-// float centerLat = radians( 39.8);     // contiguous US centroid
-// float centerLon = radians(-98.6);
+float centerLat = radians( 39.8);     // contiguous US centroid
+float centerLon = radians(-98.6);
 
-float centerLat = radians(  0.0);     // western hemisphere
-float centerLon = radians(-85.0);
+// float centerLat = radians(  0.0);     // western hemisphere
+// float centerLon = radians(-85.0);
 
 // float centerLat = radians( 40.6968);  // Manhattan
 // float centerLon = radians(-74.0284);
@@ -43,7 +43,7 @@ float centerLon = radians(-85.0);
 // float centerLat = radians( 41.8369);  // Chicago
 // float centerLon = radians(-87.6847);
 
-float zoomScaleFactor = 1;  // 1.0 shows the entire hemisphere; 4.0 is good for contiguous US; tried 120 for Chicago; 600/400 for Manhattan
+float zoomScaleFactor = 3.5;  // 1.0 shows the entire hemisphere; 4.0 is good for contiguous US; tried 120 for Chicago; 600/400 for Manhattan
 
 
   
@@ -65,7 +65,7 @@ void setup () {
   // Canvas setup
   //
   
-  size(1650, 1000);
+  size(1000, 750);      // NACIS 1920 x 1200
 
   mapWidth    = width;
   mapHeight   = height;
@@ -95,6 +95,7 @@ void setup () {
   
   // initialize lineDrawer, will run in the draw() method
   lineDrawer = new LineDrawer(lineReader, readerThread);
+  lineDrawer.setDecay(4);  // out of 255: 13 ~ 5% opacity, 3 ~ 1% opacity
   
   readerThread.start();
   
@@ -245,7 +246,7 @@ class LineDrawer implements Runnable {
   private float hourHandAngle;
   private float minuteHandAngle;
   
-  private int decayRate = 0;    // 255: 12.75 or 13 = 5% opacity, 2.55 = 1% opacity
+  private int decayRate = 3;    // 255: 12.75 or 13 = 5% opacity, 2.55 = 1% opacity
   
   private int timeLo = 0;
   private int speedLo = 0;
@@ -414,7 +415,7 @@ class LineDrawer implements Runnable {
       // Read control values
       
       setMsPerFrame(round(ffControl.getNumber()));  
-      setDecayRate(round(decayControl.getNumber()));  
+      setDecayRate(round(decayControl.getNumber()));
       
       timeLo = timeControl.getLoNumber();
       timeHi = timeControl.getHiNumber();
@@ -662,6 +663,10 @@ class LineDrawer implements Runnable {
   
   public int getDecay () { 
     return round(decayRate * 100 / 255);
+  }
+
+  public void setDecay (int decayRate) {
+    setDecayRate(decayRate);  // 255: 12.75 or 13 = 5% opacity, 2.55 = 1% opacity
   }
   
   // End of LineDrawer
