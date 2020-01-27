@@ -67,8 +67,12 @@ logParser.job               = null;
 // big crawler
 // logParser.filePath = '/Volumes/SanDisk64/distributedReader.2.0.minerThorin.2015.10.28.out';
 // logParser.filePath = '/Volumes/Tera/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
-logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+// logParser.filePath = '/media/aku/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
 // logParser.filePath = '/media/aku/Data/andrei/movement/misc/sample.1gb.out';
+
+// logParser.filePath = '/media/dude/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
+// logParser.filePath = '/media/dude/Data/andrei/movement/misc/sample.1gb.out';
+logParser.filePath = '/media/dude/My Book/solitudeFilteredData/2015to2016.out';
 
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
@@ -924,7 +928,7 @@ logParser.readData = function (fileDesc) {
 
             console.log((new Date).toLocaleTimeString() + " " + this.parsedTweets + " records parsed so far.");
             // console.log((new Date).toLocaleTimeString() + " [SERVER] " + matchingCount + " matching records found so far.");
-            console.log((new Date).toLocaleTimeString() + " " + "Moving file position to " + filePos);
+            console.log((new Date).toLocaleTimeString() + " " + "Moving file position to " + filePos.toLocaleString());
             console.log();
 
         } else {
@@ -1129,7 +1133,7 @@ logParser.matchKeywords = function (parsedJson) {
                         parsedJson.keywordMatches = {};
                     }
 
-                    parsedJson.keywordMatches[matchedKeyword] = true;
+                    parsedJson.keywordMatches[matchedKeyword.toLowerCase()] = true;
 
 
                     // Count the total number of matches for each keyword
