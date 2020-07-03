@@ -45,12 +45,26 @@ var init = function () {
 
 	//
 
+	// var filePaths = [
+	// 	"/Users/a_s899/Sasha/noBackup/bigData/speedAnalysisData/hemisphere/distributedReader.2.1.twitterCrawler01.2017.12.18.out",
+	// 	"/Users/a_s899/Sasha/noBackup/bigData/speedAnalysisData/hemisphere/distributedReader.2.1.twitterCrawler02.2017.12.18.out",
+	// 	"/Users/a_s899/Sasha/noBackup/bigData/speedAnalysisData/hemisphere/distributedReader.2.1.twitterCrawler03.2017.12.18.out",
+	// 	"/Users/a_s899/Sasha/noBackup/bigData/speedAnalysisData/hemisphere/distributedReader.2.1.twitterCrawler04.2017.12.18.out"
+	// ];
+
 	var filePaths = [
-		"/Users/a_s899/Sasha/noBackup/bigData/speedAnalysisData/hemisphere/distributedReader.2.1.twitterCrawler01.2017.12.18.out",
-		"/Users/a_s899/Sasha/noBackup/bigData/speedAnalysisData/hemisphere/distributedReader.2.1.twitterCrawler02.2017.12.18.out",
-		"/Users/a_s899/Sasha/noBackup/bigData/speedAnalysisData/hemisphere/distributedReader.2.1.twitterCrawler03.2017.12.18.out",
-		"/Users/a_s899/Sasha/noBackup/bigData/speedAnalysisData/hemisphere/distributedReader.2.1.twitterCrawler04.2017.12.18.out"
+		"/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.out",
+		"/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler02.2019.04.out",
+		"/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler03.2019.04.out",
+		"/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler04.2019.04.out"
 	];
+
+	// var filePaths = [
+	// 	"/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2020.04.out",
+	// 	"/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler02.2020.04.out",
+	// 	"/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler03.2020.04.out",
+	// 	"/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler04.2020.04.out"
+	// ];
 
 	var currentRecords = new Array(filePaths.length),
 		i;
