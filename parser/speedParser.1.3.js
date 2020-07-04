@@ -74,7 +74,8 @@ logParser.job               = null;
 
 // logParser.filePath = '/media/dude/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
 // logParser.filePath = '/media/dude/Data/andrei/movement/misc/sample.1gb.out';
-logParser.filePath = '/media/dude/My Book/solitudeFilteredData/2015to2016.out';
+// logParser.filePath = '/media/dude/My Book/solitudeFilteredData/2015to2016.out';
+logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.out';
 
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
@@ -478,12 +479,12 @@ logParser.readData = function (fileDesc) {
         filePos     = null,
         bytesRead,
         separatorPos,
-        // separator   = String.fromCharCode(0x0D) +       // CR
-        //               String.fromCharCode(0x0A) +       // LF
-        //               String.fromCharCode(0x2C) +       // ,
-        //               String.fromCharCode(0x0A);        // LF
-        separator   = String.fromCharCode(0x2C) +       // ,
+        separator   = String.fromCharCode(0x0D) +       // CR
+                      String.fromCharCode(0x0A) +       // LF
+                      String.fromCharCode(0x2C) +       // ,
                       String.fromCharCode(0x0A);        // LF
+        // separator   = String.fromCharCode(0x2C) +       // ,
+        //               String.fromCharCode(0x0A);        // LF
 
     logParser.separator = separator;    // make it available to other functions
 
@@ -542,10 +543,13 @@ logParser.readData = function (fileDesc) {
         // Locate the last separator
         separatorPos = 0;
         for (j = dataBuffer.length - 1; j > separator.length - 1; j--) {
-            // if (dataBuffer[j] === 0x0A && dataBuffer[j - 1] === 0x2C && dataBuffer[j - 2] === 0x0A && dataBuffer[j - 3] === 0x0D) {
-            if (dataBuffer[j] === 0x0A && dataBuffer[j - 1] === 0x2C) {
-                // separatorPos = j - 3;
-                separatorPos = j - 1;
+
+            if (dataBuffer[j] === 0x0A && dataBuffer[j - 1] === 0x2C && dataBuffer[j - 2] === 0x0A && dataBuffer[j - 3] === 0x0D) {
+            // if (dataBuffer[j] === 0x0A && dataBuffer[j - 1] === 0x2C) {
+            
+                separatorPos = j - 3;
+                // separatorPos = j - 1;
+            
                 break;
             }
         }
