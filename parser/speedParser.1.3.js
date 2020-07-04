@@ -17,10 +17,12 @@ logParser.mdbCollection     = null;
 // logParser.skippedTweets     = 0;
 
 // sorting tweets
+logParser.separator         = "";
 logParser.sortedTweets      = [];
 logParser.bufferedTweets    = [];
-logParser.discardCount      = 0;
+logParser.discardCount      = 0;    // "late" tweets that fell too far behind and were discarded during the sorting process
 logParser.tweetsDumped      = 0;
+logParser.duplicateCount    = 0;
 
 // printing speed
 logParser.speedString       = "";
@@ -82,7 +84,8 @@ var duplicateLocations,
     uniqueLocationPrinter,
     dupLocationPrinter,
     userLocStatPrinter,
-    emotionPrinter;
+    emotionPrinter,
+    sortedPrinter;
 
 var carLike,
     planeLike,
@@ -112,7 +115,10 @@ logParser.init = function () {
     // duplicates = require(duplicateFileName).duplicates;
 
     // emotion printer
-    emotionPrinter          = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".emotion.out");
+    emotionPrinter  = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".emotion.out");
+
+    // sorted tweets printer
+    sortedPrinter   = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".sorted.out");
 
     // keyword matching regexp
     logParser.regularExpressions = [
@@ -412,9 +418,29 @@ logParser.init = function () {
                 console.log(JSON.stringify(logParser.regexMatches));
                 console.log("Total matching tweets: " + logParser.matchingCount);
             }
+        },
+
+        sortingAndDuplicateRemovalJob = {
+
+            "do": function (parsedJson) {
+
+                logParser.sortTweets(parsedJson, logParser.sortedTweets, logParser.bufferedTweets, logParser.separator, sortedPrinter);
+
+            },
+
+            "end": function () {
+
+                logParser.flushSortingBuffers(logParser.sortedTweets, logParser.bufferedTweets, logParser.separator, sortedPrinter);
+
+                console.log("");
+                console.log("Total valid tweets: " + logParser.validCount);
+                console.log("Sorted tweets dumped to output file: " + logParser.tweetsDumped);
+                console.log("'Late' tweets discarded: " + logParser.discardCount);
+                console.log("Duplicates discarded: " + logParser.duplicateCount);
+            }
         };
 
-    this.job = emotionExtractionJob;  // pick the current job
+    this.job = sortingAndDuplicateRemovalJob;  // pick the current job
 
 
 
@@ -458,6 +484,8 @@ logParser.readData = function (fileDesc) {
         //               String.fromCharCode(0x0A);        // LF
         separator   = String.fromCharCode(0x2C) +       // ,
                       String.fromCharCode(0x0A);        // LF
+
+    logParser.separator = separator;    // make it available to other functions
 
     var j,  // buffer character counter for locating the separator
         i;  // unparsed tweets counter
@@ -536,11 +564,9 @@ logParser.readData = function (fileDesc) {
 
                 try {
 
-                    this.parsedTweets++;
-
                     // 1. Parse the tweet
                     parsedJson = JSON.parse(unparsedTweets[i]);
-
+                    this.parsedTweets++;
 
                     // 2. Check for non-tweets
                     
@@ -1803,15 +1829,17 @@ logParser.printSpeed = function (latestString, flush) {
 }
 
 
-logParser.sortTweets = function (parsedJson, tweetIdString, sortedTweets, bufferedTweets, separator) {
+logParser.sortTweets = function (parsedJson, sortedTweets, bufferedTweets, separator, batchPrinter) {
 
     var sortedStart         = -Infinity,    // could be changed to latest timestamp in the previous dump, e.g. 1371840933000 
         bufferedStart       = -Infinity,
         bufferedEnd         = -Infinity,
         currentTimestamp,
         currentLength       = bufferedTweets.length,
-        fileName            = logParser.filePath.slice(0, -4) + ".sorted.out",
-        outputString        = "";
+        // fileName            = logParser.filePath.slice(0, -4) + ".sorted.out",
+        // outputString        = "",
+        // tweetIdString       = parsedJson.id_str,
+        maxBufferSize       = 180000;
 
     // console.log("cur len = " + currentLength);
 
@@ -1828,7 +1856,7 @@ logParser.sortTweets = function (parsedJson, tweetIdString, sortedTweets, buffer
 
         // If behind sortStart, discard, log
         logParser.discardCount++;
-        console.log((new Date).toLocaleTimeString() + " " + "Skipping tweet #" + tweetIdString + " as too old.");
+        // console.log((new Date).toLocaleTimeString() + " " + "Skipping tweet #" + tweetIdString + " as too old.");
 
         // Out of 100,000,000 tweets, only 14 were
         // discarded (at buffer size of 180000).
@@ -1846,173 +1874,256 @@ logParser.sortTweets = function (parsedJson, tweetIdString, sortedTweets, buffer
     }
     
     // Once current buffer is filled,
-    if (currentLength > 180000) {
+    if (currentLength > maxBufferSize) {
 
-        console.log((new Date).toLocaleTimeString() + " " + "Switching sorting buffers ...");
-        console.log((new Date).toLocaleTimeString() + " " + "... " + sortedTweets.length + " tweets in the sorting buffer ...");
+        // console.log((new Date).toLocaleTimeString() + " " + "Switching sorting buffers ...");
+        // console.log((new Date).toLocaleTimeString() + " " + "... " + sortedTweets.length + " tweets in the sorting buffer ...");
 
-        // Sort the sort buffer
-        sortedTweets.sort(function (a, b) {
-            return (Date.parse(b.created_at) - Date.parse(a.created_at));
-        });
+        // If the output buffer has data,
+        if (sortedTweets.length > 0) {
 
-        var k = sortedTweets.length - 1,
-            tweetsPerString = 0;
+            // sort and dump the tweets to file
+            logParser.sortAndDump(sortedTweets, separator, batchPrinter);
 
-        if (k >= 0) {
+            // update the "sortedStart" mark
+            // sortedStart = Date.parse(sortedTweets[0].created_at);   // set to "sortedEnd"
+            sortedStart = bufferedStart;
 
-            // Dump the sort buffer
-            do {
-                
-                // console.error(JSON.stringify(sortedTweets[k]) + separator);
-
-                if (tweetsPerString < 30000) {
-
-                    outputString += JSON.stringify(sortedTweets[k]) + separator;
-                    tweetsPerString++;
-
-                    // keep count of total number of tweets written to sorted file
-                    logParser.tweetsDumped++;
-
-                } else {
-
-                    // dump 30,000 tweets at a time
-                    fs.appendFileSync(fileName, outputString);
-                    // console.log("dumped " + tweetsPerString + " tweets");
-
-                    // start a new output string
-                    outputString    = JSON.stringify(sortedTweets[k]) + separator;
-                    tweetsPerString = 1;
-                    logParser.tweetsDumped++;
-                }
-
-            } while (k--);  // This requires an inverted sort
-
-            // dump leftover tweets in the outputString
-            fs.appendFileSync(fileName, outputString);
-            // console.log("dumped " + tweetsPerString + " tweets");
-
-            // Update sortedStart mark
-            sortedStart = Date.parse(sortedTweets[0].created_at);   // set to "sortedEnd"
+            console.log((new Date).toLocaleTimeString() + " " + "Dumped " + logParser.tweetsDumped + " sorted tweets so far, discarded " + logParser.duplicateCount + " duplicates.");
         }
+
+        // var k = sortedTweets.length - 1,
+        //     tweetsPerString = 0;
+
+        // if (k >= 0) {
+
+        //     // Dump the sort buffer
+        //     do {
+                
+        //         // console.error(JSON.stringify(sortedTweets[k]) + separator);
+
+        //         if (tweetsPerString < 30000) {
+
+        //             outputString += JSON.stringify(sortedTweets[k]) + separator;
+        //             tweetsPerString++;
+
+        //             // keep count of total number of tweets written to sorted file
+        //             logParser.tweetsDumped++;
+
+        //         } else {
+
+        //             // dump 30,000 tweets at a time
+        //             fs.appendFileSync(fileName, outputString);
+        //             // console.log("dumped " + tweetsPerString + " tweets");
+
+        //             // start a new output string
+        //             outputString    = JSON.stringify(sortedTweets[k]) + separator;
+        //             tweetsPerString = 1;
+        //             logParser.tweetsDumped++;
+        //         }
+
+        //     } while (k--);  // This requires an inverted sort
+
+        //     // dump leftover tweets in the outputString
+        //     fs.appendFileSync(fileName, outputString);
+        //     // console.log("dumped " + tweetsPerString + " tweets");
+
+        //     // Update sortedStart mark
+        //     sortedStart = Date.parse(sortedTweets[0].created_at);   // set to "sortedEnd"
+        // }
 
         // Update bufferedStart mark
         bufferedStart = bufferedEnd;
 
         // Make current buffer be sort buffer
-        logParser.sortedTweets = bufferedTweets;
+        // logParser.sortedTweets = bufferedTweets;
+        sortedTweets = bufferedTweets;
 
         // Start a new buffer for current
-        logParser.bufferedTweets = [];
+        // logParser.bufferedTweets = [];
+        bufferedTweets = [];
         // currentLength = 0;
 
-        console.log((new Date).toLocaleTimeString() + " " + "... done.");
+        // console.log((new Date).toLocaleTimeString() + " " + "... done.");
     }
 }
 
 
-logParser.flushSortingBuffers = function (sortedTweets, bufferedTweets, discardCount, duplicatesRemoved, separator) {
+logParser.sortAndDump = function (tweets, separator, batchPrinter) {
 
-    var fileName        = logParser.filePath.slice(0, -4) + ".sorted.out",
-        outputString    = "";
+    // sort the tweets
 
-    //
-    // Dump data from current buffers
-    //
+    tweets.sort(function (a, b) {
 
-    console.log((new Date).toLocaleTimeString() + " " + "Flushing sorting buffers ...");
-    console.log((new Date).toLocaleTimeString() + " " + "... " + sortedTweets.length + " tweets in the sorting buffer, " + bufferedTweets.length + " tweets in the current buffer ...");
+        // (a - b) puts smaller number as the first element in the array
+        // with timestamps, this means the first element is the earliest tweet
 
-    // Sort the buffers
+        // code below dumps tweets to file starting with the first element in the array
+        // therefore, to dump them chronologically, we need to use (a - b) comparison
 
-    sortedTweets.sort(function (a, b) {
-        return (Date.parse(b.created_at) - Date.parse(a.created_at));
+        let timeDiff = Date.parse(a.created_at) - Date.parse(b.created_at),
+            sortResult;
+
+        if (timeDiff !== 0) {
+            
+            // in general, sort by timestamp
+            sortResult = timeDiff;
+        
+        } else {
+
+            // for identical timestamps, further sort by tweet ID
+            // this is later used to efficiently eliminate duplicates
+            sortResult = a.id_str.localeCompare(b.id_str);
+        }
+
+        return sortResult;
     });
 
-    bufferedTweets.sort(function (a, b) {
-        return (Date.parse(b.created_at) - Date.parse(a.created_at));
-    });
+
+    // dump the sorted tweets to file
+
+    let lastIdStr = "",
+        currentIdStr,
+        outputString;
+
+    for (var i = 0; i < tweets.length; i++) {
+
+        currentIdStr = tweets[i].id_str;
+
+        if (currentIdStr !== lastIdStr) {
+
+            // print tweet to file
+            outputString = JSON.stringify(tweets[i]) + separator;
+            batchPrinter.print(outputString);
+
+        } else {
+
+            // discard tweet as a duplicate
+            logParser.duplicateCount++;
+        }
+
+        lastIdStr = currentIdStr;
+    }
+}
 
 
-    // Dump the buffers
+logParser.flushSortingBuffers = function (sortedTweets, bufferedTweets, separator, batchPrinter) {
 
-    // 1
+    if (sortedTweets.length > 0) {
 
-    var k = sortedTweets.length - 1,
-        tweetsPerString = 0;
-
-    if (k >= 0) {
-
-        do {
-            
-            // console.error(JSON.stringify(sortedTweets[k]) + separator);
-
-            if (tweetsPerString < 30000) {
-
-                    outputString += JSON.stringify(sortedTweets[k]) + separator;
-                    tweetsPerString++;
-
-                    // keep count of total number of tweets written to sorted file
-                    logParser.tweetsDumped++;
-
-                } else {
-
-                    // dump 30,000 tweets at a time
-                    fs.appendFileSync(fileName, outputString);
-
-                    // start a new output string
-                    outputString    = JSON.stringify(sortedTweets[k]) + separator;
-                    tweetsPerString = 1;
-                    logParser.tweetsDumped++;
-                }
-
-            } while (k--);  // This requires an inverted sort
-
-            // dump leftover tweets in the outputString
-            fs.appendFileSync(fileName, outputString);
+        // sort and dump the tweets to file
+        logParser.sortAndDump(sortedTweets, separator, batchPrinter);
     }
 
+    if (bufferedTweets.length > 0) {
 
-    // 2
-
-    k = bufferedTweets.length - 1;
-    tweetsPerString = 0;
-
-    if (k >= 0) {
-
-        do {
-            
-            // console.error(JSON.stringify(bufferedTweets[k]) + separator);
-
-            if (tweetsPerString < 30000) {
-
-                    outputString += JSON.stringify(bufferedTweets[k]) + separator;
-                    tweetsPerString++;
-
-                    // keep count of total number of tweets written to sorted file
-                    logParser.tweetsDumped++;
-
-            } else {
-
-                // dump 30,000 tweets at a time - roughly the amount read in 100MB buffer
-                fs.appendFileSync(fileName, outputString);
-
-                // start a new output string
-                outputString    = JSON.stringify(bufferedTweets[k]) + separator;
-                tweetsPerString = 1;
-                logParser.tweetsDumped++;
-            }
-
-        } while (k--);  // This requires an inverted sort
-
-        // dump leftover tweets in the outputString
-        fs.appendFileSync(fileName, outputString);
+        // sort and dump the tweets to file
+        logParser.sortAndDump(bufferedTweets, separator, batchPrinter);
     }
 
-    console.log((new Date).toLocaleTimeString() + " " + "... done.");
-    console.log("Skipped a total of " + discardCount + " tweets as too old.");
-    console.log("Skipped a total of " + duplicatesRemoved + " tweets as duplicate.");
-    console.log("Wrote a total of " + logParser.tweetsDumped + " tweets to the sorted file.");
+    // ///////////////////////
+
+    // var fileName        = logParser.filePath.slice(0, -4) + ".sorted.out",
+    //     outputString    = "";
+
+    // //
+    // // Dump data from current buffers
+    // //
+
+    // console.log((new Date).toLocaleTimeString() + " " + "Flushing sorting buffers ...");
+    // console.log((new Date).toLocaleTimeString() + " " + "... " + sortedTweets.length + " tweets in the sorting buffer, " + bufferedTweets.length + " tweets in the current buffer ...");
+
+    // // Sort the buffers
+
+    // sortedTweets.sort(function (a, b) {
+    //     return (Date.parse(b.created_at) - Date.parse(a.created_at));
+    // });
+
+    // bufferedTweets.sort(function (a, b) {
+    //     return (Date.parse(b.created_at) - Date.parse(a.created_at));
+    // });
+
+
+    // // Dump the buffers
+
+    // // 1
+
+    // var k = sortedTweets.length - 1,
+    //     tweetsPerString = 0;
+
+    // if (k >= 0) {
+
+    //     do {
+            
+    //         // console.error(JSON.stringify(sortedTweets[k]) + separator);
+
+    //         if (tweetsPerString < 30000) {
+
+    //                 outputString += JSON.stringify(sortedTweets[k]) + separator;
+    //                 tweetsPerString++;
+
+    //                 // keep count of total number of tweets written to sorted file
+    //                 logParser.tweetsDumped++;
+
+    //             } else {
+
+    //                 // dump 30,000 tweets at a time
+    //                 fs.appendFileSync(fileName, outputString);
+
+    //                 // start a new output string
+    //                 outputString    = JSON.stringify(sortedTweets[k]) + separator;
+    //                 tweetsPerString = 1;
+    //                 logParser.tweetsDumped++;
+    //             }
+
+    //         } while (k--);  // This requires an inverted sort
+
+    //         // dump leftover tweets in the outputString
+    //         fs.appendFileSync(fileName, outputString);
+    // }
+
+
+    // // 2
+
+    // k = bufferedTweets.length - 1;
+    // tweetsPerString = 0;
+
+    // if (k >= 0) {
+
+    //     do {
+            
+    //         // console.error(JSON.stringify(bufferedTweets[k]) + separator);
+
+    //         if (tweetsPerString < 30000) {
+
+    //                 outputString += JSON.stringify(bufferedTweets[k]) + separator;
+    //                 tweetsPerString++;
+
+    //                 // keep count of total number of tweets written to sorted file
+    //                 logParser.tweetsDumped++;
+
+    //         } else {
+
+    //             // dump 30,000 tweets at a time - roughly the amount read in 100MB buffer
+    //             fs.appendFileSync(fileName, outputString);
+
+    //             // start a new output string
+    //             outputString    = JSON.stringify(bufferedTweets[k]) + separator;
+    //             tweetsPerString = 1;
+    //             logParser.tweetsDumped++;
+    //         }
+
+    //     } while (k--);  // This requires an inverted sort
+
+    //     // dump leftover tweets in the outputString
+    //     fs.appendFileSync(fileName, outputString);
+    // }
+
+    // console.log((new Date).toLocaleTimeString() + " " + "... done.");
+    // console.log("Skipped a total of " + discardCount + " tweets as too old.");
+    // console.log("Skipped a total of " + duplicatesRemoved + " tweets as duplicate.");
+    // console.log("Wrote a total of " + logParser.tweetsDumped + " tweets to the sorted file.");
+
 }
 
 
