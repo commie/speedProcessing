@@ -144,19 +144,27 @@ var init = function () {
 			// if timestamp equal to 1st,
 			if (currentRecords[i].tweet.created_at === lastTimestamp) {
 
-				// but not the same tweet ..
-				if (currentRecords[i].tweet.id_str !== lastId) {
+				// write and count
+				dumpRecords(dumpPath, JSON.stringify(currentRecords[i].tweet));
+				writtenCount++;
 
-					// write and count
-					dumpRecords(dumpPath, JSON.stringify(currentRecords[i].tweet));
-					writtenCount++;
+				// ///////////////////////////////////////////
 
-				// alternatively, if the same tweet ..
-				} else {
+				// // but not the same tweet ..
+				// if (currentRecords[i].tweet.id_str !== lastId) {
 
-					// don't write, count identical
-					skippedCount++;
-				}
+				// 	// write and count
+				// 	dumpRecords(dumpPath, JSON.stringify(currentRecords[i].tweet));
+				// 	writtenCount++;
+
+				// // alternatively, if the same tweet ..
+				// } else {
+
+				// 	// don't write, count identical
+				// 	skippedCount++;
+				// }
+
+				// ///////////////////////////////////////////
 
 				// late records will still be embedded as late
 				// this means there's no guarantee of perfect order
@@ -164,6 +172,7 @@ var init = function () {
 
 				// not all duplicates will be removed by this approach, either
 				// the id_str is remembered only from the "first" reader, but other readers can contain their own duplicates
+				// attempts to remove duplicates disabled in the code above, since it's done in the sorting process
 
 				// for the processed records, get next tweet and update "readerDone" flag
 				currentRecords[i].tweet = currentRecords[i].reader.nextRecord();
