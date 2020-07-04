@@ -1847,7 +1847,7 @@ logParser.sortTweets = function (parsedJson, sortedTweets, bufferedTweets, separ
         // fileName            = logParser.filePath.slice(0, -4) + ".sorted.out",
         // outputString        = "",
         // tweetIdString       = parsedJson.id_str,
-        maxBufferSize       = 180000;
+        maxBufferSize       = 150000;
 
     // console.log("cur len = " + currentLength);
 
