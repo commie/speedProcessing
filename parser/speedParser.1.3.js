@@ -956,6 +956,9 @@ logParser.readData = function (fileDesc) {
 
             filePos = (filePos) ? filePos + separatorPos + separator.length : separatorPos + separator.length;
 
+            console.log(logParser.bufferedTweets.length);
+            console.log(logParser.sortedTweets.length);
+
             console.log((new Date).toLocaleTimeString() + " " + this.parsedTweets + " records parsed so far.");
             // console.log((new Date).toLocaleTimeString() + " [SERVER] " + matchingCount + " matching records found so far.");
             console.log((new Date).toLocaleTimeString() + " " + "Moving file position to " + filePos.toLocaleString());
@@ -1940,12 +1943,12 @@ logParser.sortTweets = function (parsedJson, sortedTweets, bufferedTweets, separ
         bufferedStart = bufferedEnd;
 
         // Make current buffer be sort buffer
-        // logParser.sortedTweets = bufferedTweets;
-        sortedTweets = bufferedTweets;
+        logParser.sortedTweets = bufferedTweets;
+        // sortedTweets = bufferedTweets;
 
         // Start a new buffer for current
-        // logParser.bufferedTweets = [];
-        bufferedTweets = [];
+        logParser.bufferedTweets = [];
+        // bufferedTweets = [];
         // currentLength = 0;
 
         // console.log((new Date).toLocaleTimeString() + " " + "... done.");
