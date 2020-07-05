@@ -459,7 +459,7 @@ logParser.init = function () {
             }
         };
 
-    this.job = sortingAndDuplicateRemovalJob;  // pick the current job
+    this.job = logMovementJob;  // pick the current job
 
 
 
