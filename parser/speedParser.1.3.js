@@ -30,6 +30,11 @@ logParser.speedStrCount     = 0;
 
 // movement extraction
 logParser.uniqueUsers       = {};
+logParser.sameLoc           = 0;
+logParser.sameTime          = 0;
+logParser.sameBoth          = 0;
+logParser.cleanRecords      = 0;
+// also uses logParser.duplicateCount
 
 // duplicate location detection
 logParser.rawLocationCount  = 0;
@@ -75,7 +80,8 @@ logParser.job               = null;
 // logParser.filePath = '/media/dude/Data/andrei/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.out';
 // logParser.filePath = '/media/dude/Data/andrei/movement/misc/sample.1gb.out';
 // logParser.filePath = '/media/dude/My Book/solitudeFilteredData/2015to2016.out';
-logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.out';
+// logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.out';
+logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.sorted.out';
 
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
@@ -86,7 +92,8 @@ var duplicateLocations,
     dupLocationPrinter,
     userLocStatPrinter,
     emotionPrinter,
-    sortedPrinter;
+    sortedPrinter,
+    movementPrinter;
 
 var carLike,
     planeLike,
@@ -128,8 +135,9 @@ logParser.init = function () {
         /lonely/i
     ];
 
-    // movement output
-    batchPrinter.fileName   = logParser.filePath.slice(0, -4) + ".movement.out";    // batchPrinter is a custom object defined at the end of the file
+    // movement printer
+    // batchPrinter.fileName   = logParser.filePath.slice(0, -4) + ".movement.out";    // batchPrinter is a custom object defined at the end of the file
+    movementPrinter = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".movement.out");
 
     // intput and output for separating unique locations
     duplicateLocations      = require("./duplicateLocations.02.js").duplicateLocations;
@@ -186,7 +194,7 @@ logParser.init = function () {
         }
 
         return matchingPrinter;
-    }
+    };
 
 
     // Set up the jobs
@@ -196,13 +204,23 @@ logParser.init = function () {
             "do": function (parsedJson) {   // this is executed for every tweet with parsedJson as a single parameter
 
                 // log movement and print results to file
-                batchPrinter.print(logParser.logMovement(parsedJson));
+                movementPrinter.print(logParser.logMovement(parsedJson));
             },
             
             "end": function () {            // this is executed once all tweets are read
 
                 // flush movement records buffer
-                batchPrinter.flush();
+                movementPrinter.flush();
+
+                console.log("");
+                
+                console.log("Wrote " + logParser.cleanRecords + " movement records to file.");
+
+                console.log("Discarded " + logParser.sameLoc + " records as having identical coordinates.");
+                console.log("Discarded " + logParser.sameTime + " records as having identical timestamps.");
+                console.log("Discarded " + logParser.sameBoth + " records as having identical timestamps and coordinates.");
+                
+                console.log("Discarded " + logParser.duplicateCount + " tweets as duplicates while extracting movement records.");
             }
         },
 
@@ -210,13 +228,13 @@ logParser.init = function () {
                         
             "do": function (parsedJson) {
 
-                // populate user heterogeneity matrix
+                // populate user heterogeneity matrix - average number of movement records per user
                 logParser.calcMovementHeterogeneityMatrix(parsedJson);
             },
             
             "end": function () {
 
-                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".heteroMatrix.out";
+                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".heteroMatrix.out";  // batchPrinter is a custom object defined at the end of the file
 
                 var i, j, matrixCell;
 
@@ -250,13 +268,13 @@ logParser.init = function () {
                         
             "do": function (parsedJson) {
 
-                // populate user heterogeneity matrix
+                // populate location heterogeneity matrix - movement record count divided by the number of unique locations
                 logParser.calcLocationHeterogeneityMatrix(parsedJson);
             },
             
             "end": function () {
 
-                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".locationHeteroMatrix.out";
+                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".locationHeteroMatrix.out";  // batchPrinter is a custom object defined at the end of the file
 
                 var i, j, matrixCell;
 
@@ -325,7 +343,7 @@ logParser.init = function () {
                 
                 // print duplicate locations to file
                 
-                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".duplicateLocationsTest.out";
+                batchPrinter.fileName = logParser.filePath.slice(0, -4) + ".duplicateLocationsTest.out";    // batchPrinter is a custom object defined at the end of the file
                 
                 batchPrinter.print(JSON.stringify(duplicatesOnly));
                 batchPrinter.flush();
@@ -1464,6 +1482,9 @@ logParser.logDuplicateLocations = function (parsedJson) {
 
 logParser.calcLocationHeterogeneityMatrix = function (parsedJson) {
 
+    // for each cell, keep a tally of movement records and a list of unique locations encountered
+    // these are preliminary calculations for the location heterogeneity matrix (movement record count divided by the number of unique locations)
+
     var userId = parsedJson.user.id_str;
 
     if (parsedJson.coordinates) {
@@ -1493,10 +1514,10 @@ logParser.calcLocationHeterogeneityMatrix = function (parsedJson) {
 
             var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
 
-            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
-            var dur  = (time2 - time1) / 1000.0;                                        // s
-            // var speed = Math.round(dist / dur);                                      // m/s
-            var speed = dist / (dur / 3600.0);                                          // MPH
+            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.344;    // convert meters to miles
+            var dur  = (time2 - time1) / 1000.0;                                            // s
+            // var speed = Math.round(dist / dur);                                          // m/s
+            var speed = dist / (dur / 3600.0);                                              // MPH
 
 
             // Place this movement record into the user heterogeneity matrix
@@ -1573,6 +1594,9 @@ logParser.calcLocationHeterogeneityMatrix = function (parsedJson) {
 
 logParser.calcMovementHeterogeneityMatrix = function (parsedJson) {
 
+    // for each cell, keep a tally of movement records and a list of unique users encountered
+    // these are preliminary calculations for the user heterogeneity matrix (movement record count divided by the number of unique users)
+
     var userId = parsedJson.user.id_str;
 
     if (parsedJson.coordinates) {
@@ -1599,10 +1623,10 @@ logParser.calcMovementHeterogeneityMatrix = function (parsedJson) {
 
             var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
 
-            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
-            var dur  = (time2 - time1) / 1000.0;                                        // s
-            // var speed = Math.round(dist / dur);                                      // m/s
-            var speed = dist / (dur / 3600.0);                                          // MPH
+            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.344;    // convert meters to miles
+            var dur  = (time2 - time1) / 1000.0;                                            // s
+            // var speed = Math.round(dist / dur);                                          // m/s
+            var speed = dist / (dur / 3600.0);                                              // MPH
 
 
             // Place this movement record into the user heterogeneity matrix
@@ -1685,8 +1709,10 @@ logParser.logMovement = function (parsedJson) { //, uniqueUsers) {
 
         if (matchingUser) {
 
-            // Check for duplicates
+            // Ignore duplicates
             if (matchingUser.twId === parsedJson.id_str) {
+
+                logParser.duplicateCount++;
                 return movementString;
             }
 
@@ -1703,13 +1729,13 @@ logParser.logMovement = function (parsedJson) { //, uniqueUsers) {
 
             var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
 
-            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.0;  // convert meters to miles
-            var dur  = (time2 - time1) / 1000.0;                                        // s
-            // var speed = Math.round(dist / dur);                                      // m/s
-            var speed = dist / (dur / 3600.0);                                          // MPH
+            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.344;    // convert meters to miles (used to be 1609.0)
+            var dur  = (time2 - time1) / 1000.0;                                            // s
+            // var speed = Math.round(dist / dur);                                          // m/s
+            var speed = dist / (dur / 3600.0);                                              // MPH
 
-            dist  = dist.toFixed(6);
-            speed = speed.toFixed(6);
+            // dist  = dist.toFixed(6);
+            // speed = speed.toFixed(6);    // why was this needed? .pde sketch doesn't parse by field width
 
 
             // Extract additional variables
@@ -1740,32 +1766,45 @@ logParser.logMovement = function (parsedJson) { //, uniqueUsers) {
             var name = matchingUser.name,
                 msg = matchingUser.msg;
 
-            // if (speed == Infinity) {
+            if (speed == Infinity) {
                 
-            //     // infinity means division by 0 - no time elapsed between the two tweets
-            //     console.error("i|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+                // infinity means division by 0 - no time elapsed between the two tweets
+                // console.error("i|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
 
-            // } else if (isNaN(speed)) {
+                logParser.sameTime++;
+
+            } else if (isNaN(speed)) {
                 
-            //     console.error("n|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+                // NaN means division of 0 by 0 - no movement and no time difference
+                // console.error("n|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
 
-            // } else if (speed === 0) {
+                logParser.sameBoth++;
 
-            //     // 0 speeds mean 0 distance - no movement between the two tweets
-            //     console.error("z|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+            } else if (speed === 0) {
 
-            // } else {
+                // 0 speeds mean 0 distance - no movement between the two tweets
+                // console.error("z|" + userId + "|" + name + "|" + (lat1 - lat2) + "|" + (lon1 - lon2) + "|" + (time2 - time1) + "|" + dist + "|" + dur + "|" + msg + "|" + cleanText);
+
+                logParser.sameLoc++;
+
+            } else {
                 
-            //     // Log movement record
-            //     // console.error(time2 + " " + dur + " " + dist + " " + speed + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2); // time1 + " " + time2 + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2
+                // log movement record
+                
+                // console.error(time2 + " " + dur + " " + dist + " " + speed + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2); // time1 + " " + time2 + " " + lat1 + " " + lon1 + " " + lat2 + " " + lon2
 
-            //     var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + cleanText + "\n";
-            //     batchPrinter.print(movementString);
-            // }
+                // var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + cleanText + "\n";
+                // batchPrinter.print(movementString);
+
+                movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
+
+                logParser.cleanRecords++;
+            }
 
             // var movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\t" + userMention + "\t" + media + "\t" + hashtags + "\t" + cleanText + "\n";
-            movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
             // batchPrinter.print(movementString);
+
+            // movementString = userId + "\t" + name + "\t" + time2 + "\t" + dur + "\t" + dist + "\t" + speed + "\t" + lat1 + "\t" + lon1 + "\t" + lat2 + "\t" + lon2 + "\n";
 
             
 
@@ -1795,7 +1834,7 @@ logParser.logMovement = function (parsedJson) { //, uniqueUsers) {
                 lat:    parsedJson.coordinates.coordinates[1],
                 lon:    parsedJson.coordinates.coordinates[0],
                 msg:    "", //cleanText,
-                name:   parsedJson.user.screen_name.replace(/\n|\t/g, " ")
+                name:   parsedJson.user.screen_name.replace(/\r\n|\r|\n|\t/g, " ")
             };
         }
 
