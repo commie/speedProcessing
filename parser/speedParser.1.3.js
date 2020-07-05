@@ -975,8 +975,8 @@ logParser.readData = function (fileDesc) {
             filePos = (filePos) ? filePos + separatorPos + separator.length : separatorPos + separator.length;
 
             // debugging sorting behavior
-            console.log(logParser.bufferedTweets.length);
-            console.log(logParser.sortedTweets.length);
+            // console.log(logParser.bufferedTweets.length);
+            // console.log(logParser.sortedTweets.length);
 
             console.log((new Date).toLocaleTimeString() + " " + this.parsedTweets + " records parsed so far.");
             // console.log((new Date).toLocaleTimeString() + " [SERVER] " + matchingCount + " matching records found so far.");
