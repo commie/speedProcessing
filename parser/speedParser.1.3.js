@@ -50,6 +50,14 @@ for (var i = 0; i < logParser.heteroMatrixSize; i++) {
     logParser.heteroMatrix[i] = new Array(logParser.heteroMatrixSize);
 }
 
+// movement density matrix
+logParser.movementMatrixSize  = 100;
+logParser.movementMatrix      = new Array(logParser.movementMatrixSize);
+
+for (var i = 0; i < logParser.movementMatrixSize; i++) {
+    logParser.movementMatrix[i] = new Array(logParser.movementMatrixSize);
+}
+
 // keyword matching
 logParser.regularExpressions;
 logParser.regexMatches = {};
@@ -588,7 +596,7 @@ logParser.readData = function (fileDesc) {
 
                     // 1. Parse the tweet
                     parsedJson = JSON.parse(unparsedTweets[i]);
-                    this.parsedTweets++;
+                    this.parsedTweets++;    // technically, this is incorrect - we don't know if it's a tweet yet
 
                     // 2. Check for non-tweets
                     
@@ -1477,6 +1485,123 @@ logParser.logDuplicateLocations = function (parsedJson) {
         }
     }
 
+};
+
+
+logParser.calcMovementDensityMatrix = function (parsedJson) {
+
+    let movementRecord = logParser.buildMovementRecord(parsedJson);
+
+    if (movementRecord) {
+
+        if (false) {
+            // todo - check for odd records here
+            // todo - check for bounding box match here
+        }
+
+        // place this record into the movement density matrix
+        
+        var x = movementRecord.dist + 1,
+            y = movementRecord.dur;
+
+        var xStep = 9.420376507528268 / (logParser.heteroMatrixSize - 1),        // natural log of the max travelled distance
+            yStep = 14.800201719199531 / (logParser.heteroMatrixSize - 1);       // natural log of the max travelled duration
+
+        var xBin = Math.floor(Math.log(x) / xStep),
+            yBin = Math.floor(Math.log(y) / yStep);
+
+        var currentRecord = logParser.movementMatrix[xBin][yBin];    
+
+        if (currentRecord) {
+
+            logParser.movementMatrix[xBin][yBin]++;
+        
+        } else {
+
+            logParser.movementMatrix[xBin][yBin] = 1;
+        }
+    }
+
+};
+
+
+logParser.buildMovementRecord = function (parsedJson) {
+
+    let userId = parsedJson.user.id_str,
+        movementRecord = null;
+
+    if (parsedJson.coordinates) {
+
+        var matchingUser = logParser.uniqueUsers[userId];
+
+        var coordArray  = parsedJson.coordinates.coordinates,
+            locationKey = coordArray[0] + " " + coordArray[1];
+
+        if (matchingUser) {
+
+            // Check for duplicates
+            if (matchingUser.twId === parsedJson.id_str) {
+
+                logParser.duplicateCount++;
+                return movementRecord;
+            }
+
+
+            // Calculate distance, duration and speed
+
+            var time1 = matchingUser.time,
+                time2 = Date.parse(parsedJson.created_at);
+
+            var lat1 = matchingUser.lat,
+                lon1 = matchingUser.lon,
+                lat2 = parsedJson.coordinates.coordinates[1],
+                lon2 = parsedJson.coordinates.coordinates[0];
+
+            var cleanText = parsedJson.text.replace(/\r\n|\r|\n|\t/g, " ");
+
+            var dist = logParser.greatCircleDistance(lat1, lon1, lat2, lon2) / 1609.344;    // convert meters to miles
+            var dur  = (time2 - time1) / 1000.0;                                            // s
+            var speed = dist / (dur / 3600.0);                                              // MPH
+
+
+            // Form a movement record
+            movementRecord = {
+                userId:     userId, 
+                name:       matchingUser.name,
+                time2:      time2, 
+                dur:        dur,
+                dist:       dist,
+                speed:      speed,
+                lat1:       lat1,
+                lon1:       lon1,
+                lat2:       lat2,
+                lon2:       lon2,
+                cleanText:  cleanText
+            };
+
+            // Update user record
+            matchingUser.time    = time2;
+            matchingUser.lat     = lat2;
+            matchingUser.lon     = lon2;
+            matchingUser.msg     = cleanText;
+
+        } else {
+
+            // Create a new user record
+
+            logParser.uniqueUsers[userId] = {
+                twId:   parsedJson.id_str,
+                time:   Date.parse(parsedJson.created_at),// - 18000000,   // UTC - 5 hours (18,000,000 ms)
+                lat:    parsedJson.coordinates.coordinates[1],
+                lon:    parsedJson.coordinates.coordinates[0],
+                msg:    "", //cleanText,
+                name:   parsedJson.user.screen_name.replace(/\n|\t/g, " ")
+            };
+        }
+
+    }
+
+    return movementRecord;
 };
 
 
