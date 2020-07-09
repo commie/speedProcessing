@@ -97,7 +97,7 @@ logParser.job = null;
 // logParser.filePath = '/media/dude/My Book/solitudeFilteredData/2015to2016.out';
 // logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.out';
 // logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.sorted.out';
-logParser.filePath = '/home/dude/dataDrive/covita/distributedReader.2.1.twitterCrawler02.2020.07.08.out';
+logParser.filePath = '/home/dude/dataDrive/covita/distributedReader.2.1.twitterCrawler05.2020.07.08.out';
 
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
