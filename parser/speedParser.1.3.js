@@ -2771,6 +2771,8 @@ logParser.filterByBoundingBox = function (parsedJson, separator, bbox) {
         // ...
     }
 
+    return outputString;
+
 }
 
 
