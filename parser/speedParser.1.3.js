@@ -15,6 +15,7 @@ logParser.tweetPrototypes   = [];
 logParser.mdbCollection     = null;
 // logParser.batchComplete;
 // logParser.skippedTweets     = 0;
+logParser.defaultPrinter    = null;
 
 // sorting tweets
 logParser.separator         = "";
@@ -23,6 +24,7 @@ logParser.bufferedTweets    = [];
 logParser.discardCount      = 0;    // "late" tweets that fell too far behind and were discarded during the sorting process
 logParser.tweetsDumped      = 0;
 logParser.duplicateCount    = 0;
+logParser.lastTweetIdStr    = null;
 
 // printing speed
 logParser.speedString       = "";
@@ -63,7 +65,12 @@ logParser.regularExpressions;
 logParser.regexMatches = {};
 logParser.matchingCount = 0;
 
-logParser.job               = null;
+// bounding box matching
+logParser.bbox = null;
+logParser.xyMatchingCount = 0;
+logParser.placeMatchingCount = 0;
+
+logParser.job = null;
 
     // Data paths are relative to the current working directory in console,
     // node modules paths (and 'require' calls) are relative to the location 
@@ -89,7 +96,8 @@ logParser.job               = null;
 // logParser.filePath = '/media/dude/Data/andrei/movement/misc/sample.1gb.out';
 // logParser.filePath = '/media/dude/My Book/solitudeFilteredData/2015to2016.out';
 // logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.out';
-logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.sorted.out';
+// logParser.filePath = '/home/dude/dataDrive/andrei/covidMovement/distributedReader.2.1.twitterCrawler01.2019.04.merged.sorted.out';
+logParser.filePath = '/home/dude/dataDrive/covita/distributedReader.2.1.twitterCrawler01.2020.07.08.out';
 
 // logParser.filePath = '/Users/a_s899/Sasha/noBackup/bigData/twitterSpeedData/speedParser.sorted.fixedHash.out';
 
@@ -465,9 +473,42 @@ logParser.init = function () {
                 console.log("'Late' tweets discarded: " + logParser.discardCount);
                 console.log("Duplicates discarded: " + logParser.duplicateCount);
             }
+        },
+
+        boundingBoxFilterJob = {
+
+                "init": function () {
+
+                    logParser.bbox = [
+
+                        // COVITA bbox
+                        
+                          60,       // lat from (smaller)
+                          90,       // lat to
+                        -180,       // lon from (smaller)
+                         180        // lon to
+                    ];
+
+                    logParser.defaultPrinter = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + ".bbox.out");
+                },
+
+                "do": function (parsedJson) {
+
+                    logParser.defaultPrinter.print(logParser.filterByBoundingBox(parsedJson, logParser.separator, logParser.bbox));
+                },
+
+                "end": function () {
+
+                    logParser.defaultPrinter.flush();
+
+                    console.log("");
+                    console.log("Total valid tweets: " + logParser.validCount);
+                    console.log("Tweets with exact location that matched bounding box: " + logParser.xyMatchingCount);
+                    console.log("Tweets with places that are fully within bounding box: " + logParser.placeMatchingCount);
+                }
         };
 
-    this.job = logMovementJob;  // pick the current job
+    this.job = boundingBoxFilterJob;  // pick the current job
 
 
 
@@ -537,6 +578,14 @@ logParser.readData = function (fileDesc) {
     //     discardCount        = 0;
 
     // extracting movement records
+    // ...
+
+    // x. Initialize the current job
+    if (this.job.init) {
+        
+        // added this recently, not all jobs initialize this way yet
+        this.job.init();
+    }
 
     // var uniqueUsers = {},
     var uniqueCount,
@@ -2162,7 +2211,13 @@ logParser.sortAndDump = function (tweets, separator, batchPrinter) {
 
         currentIdStr = tweets[i].id_str;
 
-        if (currentIdStr !== lastIdStr) {
+        if (currentIdStr !== logParser.lastTweetIdStr) {
+
+            // using a global logParser.lastTweetIdStr since some duplicates escaped the 
+            // approach with a local variable (duplicates split across the buffer?)
+
+            // this doesn't guarantee complete removal, either, since the sort by id isn't
+            // guaranteed to make duplicates line up across adjacent buffers
 
             // print tweet to file
             outputString = JSON.stringify(tweets[i]) + separator;
@@ -2174,7 +2229,7 @@ logParser.sortAndDump = function (tweets, separator, batchPrinter) {
             logParser.duplicateCount++;
         }
 
-        lastIdStr = currentIdStr;
+        logParser.lastTweetIdStr = currentIdStr;
     }
 }
 
@@ -2639,6 +2694,81 @@ logParser.isArray = function (value, stringify) {
         return Object.prototype.toString.apply(value) === '[object Array]'; // more robust but might be slower
     } else {
         return value && typeof value === 'object' && value.constructor === Array;
+    }
+
+}
+
+
+logParser.filterByBoundingBox = function (parsedJson, separator, bbox) {
+
+    // var lonFrom     = -98.5,
+    //     lonTo       = -96.5,
+    //     latFrom     =  34.5,
+    //     latTo       =  36.5;
+
+    var latFrom     = bbox[0],
+        latTo       = bbox[1],
+        lonFrom     = bbox[2],
+        lonTo       = bbox[3];
+
+    let outputString = "";
+
+    if (parsedJson.coordinates) {
+
+        // .coordinates is only set when exact coordinates are specified; a bbox is put in .place instead
+
+        let tweetLat = parsedJson.coordinates.coordinates[1],
+            tweetLon = parsedJson.coordinates.coordinates[0];
+
+        if (lonFrom <= tweetLon && tweetLon <= lonTo &&
+            latFrom <= tweetLat && tweetLat <= latTo) {
+
+            // form output string for file printer
+            outputString = JSON.stringify(parsedJson) + separator;
+
+            // count matching tweets
+            logParser.xyMatchingCount++;
+        }
+
+    } else if (parsedJson.place) {
+
+        // .place can be set even when .coordinates exist; it will then contain the Twitter Place associated with the exact coordinates in .coordinates
+
+        let placeBox    = parsedJson.place.bounding_box.coordinates[0],
+            boxCornerLat, 
+            boxCornerLon,
+            completeFit = true;
+
+        for (var i = 0; i < placeBox.length; i++) {
+
+            boxCornerLat = placeBox[i][1];
+            boxCornerLon = placeBox[i][0];
+
+            if (lonFrom <= boxCornerLon && boxCornerLon <= lonTo &&
+                latFrom <= boxCornerLat && boxCornerLat <= latTo) {
+
+                // this corner fits within bounding box
+
+            } else {
+
+                completeFit = false;
+            }
+        }
+
+        if (completeFit) {
+
+            // form output string for file printer
+            outputString = JSON.stringify(parsedJson) + separator;
+
+            // count matching tweets
+            logParser.placeMatchingCount++;
+        }
+
+
+    } else {
+
+        // a geotagged tweet with neither point coordinates or a bounding box - shouldn't happen
+        // ...
     }
 
 }
