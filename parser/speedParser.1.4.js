@@ -524,7 +524,9 @@ logParser.init = function () {
                     console.log("Tweets with exact location that matched bounding box: " + logParser.xyMatchingCount);
                     console.log("Tweets with places that are fully within bounding box: " + logParser.placeMatchingCount);
                 }
-        };
+        // };
+        }
+    };
 
 
     // Pick the current job
