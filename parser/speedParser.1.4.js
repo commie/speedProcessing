@@ -447,7 +447,7 @@ logParser.init = function () {
 
                         currentCell = logParser.gridCells[i];
 
-                        currentCell.name = Math.floor((i + 1) / cellCount) + "x" + Math.floor((i + 1) % cellCount);
+                        currentCell.name = Math.floor(i / cellCount) + "x" + Math.floor(i % cellCount);
                         currentCell.printer = logParser.batchPrinterFactory(logParser.filePath.slice(0, -4) + "." + currentCell.name + ".bbox.out");
                         
                     }
