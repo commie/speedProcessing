@@ -457,33 +457,38 @@ logParser.init = function () {
 
                     let movementObject = logParser.splitMovementRecordsIntoFiles(parsedJson);   // generate a movement record
 
-                    let speed   = movementObject.speed,
-                        dist    = movementObject.distance,
-                        dur     = movementObject.duration;
+                    if (movementObject) {   // when non-point tweets are encountered, movementObject is null
 
-                    let i, cell, movementPrinter;
+                        let speed   = movementObject.speed,
+                            dist    = movementObject.distance,
+                            dur     = movementObject.duration;
 
-                    for (i = 0; i < logParser.gridCells.length; i++) {
+                        let i, cell, movementPrinter;
 
-                        cell = logParser.gridCells[i];
+                        for (i = 0; i < logParser.gridCells.length; i++) {
 
-                        if (cell.xmin <= dist && dist < cell.xmax && cell.ymin <= dur && dur < cell.ymax) {
+                            cell = logParser.gridCells[i];
+
+                            if (cell.xmin <= dist && dist < cell.xmax && cell.ymin <= dur && dur < cell.ymax) {
+                                
+                                movementPrinter = cell.printer;
+                                break;
+                            }
+                        }
+
+                        if (movementPrinter) {
                             
-                            movementPrinter = cell.printer;
-                            break;
+                            // print movement record to file
+                            movementPrinter.print(movementObject.movementString);
+
+                        } else {
+                            
+                            // record didn't fit into any grid cell
+                            console.log("Not good - some movement record didn't fit into any of the grid cells.")
                         }
                     }
 
-                    if (movementPrinter) {
-                        
-                        // print movement record to file
-                        movementPrinter.print(movementObject.movementString);
-
-                    } else {
-                        
-                        // record didn't fit into any grid cell
-                        console.log("Not good - some movement record didn't fit into any of the grid cells.")
-                    }
+                    
                 },
 
                 "end": function () {
