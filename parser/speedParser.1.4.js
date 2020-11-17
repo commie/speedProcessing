@@ -3267,7 +3267,7 @@ logParser.batchPrinterFactory = function (outputFilePath) {
     var batchPrinter = {
 
         stringCount:        0,
-        maxCount:           10000, 
+        maxCount:           1000, 
         outputString:       "",
         fileName:           outputFilePath,
 
