@@ -31,19 +31,41 @@ int mapHeight;
 
 // ////////////////////////////////////////////////////////
 
-float centerLat = radians( 39.8);     // contiguous US centroid
-float centerLon = radians(-98.6);
+//float centerLat = radians( 39.8);     // contiguous US centroid
+//float centerLon = radians(-98.6);
 
-// float centerLat = radians(  0.0);     // western hemisphere
-// float centerLon = radians(-85.0);
+ //float centerLat = radians(  0.0);     // western hemisphere
+ //float centerLon = radians(-85.0);
+ 
+ float centerLat = radians( 18.5);     // caribbean
+ float centerLon = radians(-72.0);
+ 
+ //float centerLat = radians(  21.3);     // hawaii
+ //float centerLon = radians(-158.0);
+ 
+ //float centerLat = radians(  39.8);     // Denver
+ //float centerLon = radians(-105.0);
 
-// float centerLat = radians( 40.6968);  // Manhattan
-// float centerLon = radians(-74.0284);
+ //float centerLat = radians( 37.25);  // Cali
+ //float centerLon = radians(-120.25);
+ 
+ //float centerLat = radians( 40.3);  // washington-boston overview
+ //float centerLon = radians(-74.6);
+
+ //float centerLat = radians( 40.6968);  // Manhattan
+ //float centerLon = radians(-74.0284);
 
 // float centerLat = radians( 41.8369);  // Chicago
 // float centerLon = radians(-87.6847);
 
-float zoomScaleFactor = 3.5;  // 1.0 shows the entire hemisphere; 4.0 is good for contiguous US; tried 120 for Chicago; 600/400 for Manhattan
+float zoomScaleFactor = 5.0;
+  // 1.0 shows the entire hemisphere (1.1 is a bit better zoomed in)
+  // 3.5 (4.0) is good for contiguous US
+  // 5.0 is good for caribbean + tip of florida
+  // 6.0 is good for west overview (Denver)
+  // 15.0 is good for washington-boston overview
+  // tried 120 for Chicago
+  // 600/400 for Manhattan
 
 
   
@@ -65,7 +87,7 @@ void setup () {
   // Canvas setup
   //
   
-  size(1000, 750);      // NACIS 1920 x 1200
+  size(1650, 950);      // NACIS 1920 x 1200
 
   mapWidth    = width;
   mapHeight   = height;
@@ -88,6 +110,7 @@ void setup () {
   // String filePath = "C:/Sasha/noBackup/data/movement/distributedReader.2.1.twitterCrawler01.2017.12.merged.movement.out";
   // String filePath = "D:/Andrei/distributedReader.2.1.twitterCrawler01.2017.12.merged.movementOnly.out";
   String filePath = "/Users/a_s899/Sasha/noBackup/bigData/distributedReader.2.1.twitterCrawler01.2017.12.merged.movement.out";
+  //String filePath = "/Users/a_s899/OneDrive - Texas State University/papers/speedMovement/covidMovement/data/distributedReader.2.1.twitterCrawler01.2019.04.merged.sorted.movement.out";
   
   // initialize lineReader and set it up to run in a separate thread
   LineReader lineReader = new LineReader(filePath);
@@ -95,7 +118,7 @@ void setup () {
   
   // initialize lineDrawer, will run in the draw() method
   lineDrawer = new LineDrawer(lineReader, readerThread);
-  lineDrawer.setDecay(4);  // out of 255: 13 ~ 5% opacity, 3 ~ 1% opacity
+  lineDrawer.setDecay(5);  // out of 255: 13 ~ 5% opacity, 3 ~ 1% opacity
   
   readerThread.start();
   
@@ -113,16 +136,17 @@ void setup () {
   ffControl       = new NumberControl(round(controlWidth * 2.1), round(mapHeight - controlWidth * 1.75), controlWidth, "minutes/s", lineDrawer.getMinutesPerSecond(), false,  1.0,   60.0);  
 
   // default movement filters        x                          y                                      width         label      lo    hi      min step
-  speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     0,    800,    0,  1);   // MPH
-  timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "seconds", 0,    86400,  0,  10);  // seconds; week is 604800, day is 86400, 12 hrs is 43200, 1 hour is 3600
-  distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0,    12500,  0,  10);  // miles; 12,500 is half the globe
+  speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     0,    650,    0,  1);   // MPH
+  //timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "seconds", 0,    86400,  0,  10);  // seconds; week is 604800, day is 86400, 12 hrs is 43200, 1 hour is 3600
+  timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "hours", 0,    750,  0,  1);  // hours; week is 168, month is 744
+  distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0,    6000,  0,  10);  // miles; 12,500 is half the globe, 6,000 is Boston to Hawaii
   
   // class 0 'Tweeting still' <2hr   <1 mile 
   // speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     0, 800,   0,  1);      // MPH
   // timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "minutes", 0, 7200, 0,  10); // sec
   // distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 1,  0,  10); // miles
   
-  // class 1 'Daily life' >22000sec   <31 mile 
+  // class 1 'Daily life' >22000sec (6hr)   <31 mile 
   // speedControl    = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 3.6), controlWidth, "mph",     0, 800,   0,  1);      // MPH
   // timeControl     = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth * 2.3), controlWidth, "minutes", 0, 22000, 0,  10); // sec
   // distanceControl = new RangeControl(round(controlWidth * 0.8), round(mapHeight - controlWidth),       controlWidth, "miles",   0, 31,  0,  10); // miles
@@ -233,7 +257,7 @@ class LineDrawer implements Runnable {
   private int idxInBatch;            // position in the current batch
   private int batchLength;           // batch size
 
-  private long msPerFrame = 120000;   // 30,000 ms per frame is 15 minutes per second @ 30 FPS (20k is 10', 10k is 5', 2k is 1')
+  private long msPerFrame = 60000;   // 30,000 ms per frame is 15 minutes per second @ 30 FPS (120k is 60', 20k is 10', 10k is 5', 2k is 1')
   private long nextFrame = 0;
   
   private Boolean drawing;
@@ -242,11 +266,13 @@ class LineDrawer implements Runnable {
   
   private long recordsDrawn = 0;
   private long recordsTotal = 8297398;  // from line count for distributedReader.2.1.twitterCrawler01.2017.12.merged.movementOnly.out
+  //private long recordsTotal = 2717366;  // from line count for distributedReader.2.1.twitterCrawler01.2019.04.merged.sorted.movement.out
+  //private long recordsTotal = 1149854;  // from line count for distributedReader.2.1.twitterCrawler01.2020.04.merged.sorted.movement.out
   
   private float hourHandAngle;
   private float minuteHandAngle;
   
-  private int decayRate = 3;    // 255: 12.75 or 13 = 5% opacity, 2.55 = 1% opacity
+  private int decayRate = 5;    // 255: 12.75 or 13 = 5% opacity, 2.55 = 1% opacity
   
   private int timeLo = 0;
   private int speedLo = 0;
@@ -417,8 +443,8 @@ class LineDrawer implements Runnable {
       setMsPerFrame(round(ffControl.getNumber()));  
       setDecayRate(round(decayControl.getNumber()));
       
-      timeLo = timeControl.getLoNumber();
-      timeHi = timeControl.getHiNumber();
+      timeLo = timeControl.getLoNumber() * 3600; // convert hours to seconds
+      timeHi = timeControl.getHiNumber() * 3600;
       
       distLo = distanceControl.getLoNumber();
       distHi = distanceControl.getHiNumber();
@@ -449,7 +475,7 @@ class LineDrawer implements Runnable {
         println("Timestamp of last record drawn: " + prettyDayOfWeek(calendar.get(Calendar.DAY_OF_WEEK)) + " " + (calendar.get(Calendar.MONTH) + 1) + "/" + calendar.get(Calendar.DAY_OF_MONTH) + " " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE));
         
         prettyPercent = String.format("%.3f", ((float) recordsDrawn / recordsTotal) * 100);
-        println("Drawing rate: " + frameRate + " fps, " + prettyPercent + "% of all records drawn so far.");
+        println("Drawing rate: " + frameRate + " fps, " + recordsDrawn + " records drawn, " + prettyPercent + "% of total.");
       }
       
     } else {
@@ -522,8 +548,8 @@ class LineDrawer implements Runnable {
     
     pushMatrix();
   
-      int x = mapWidth - round(clockWidth * 1.5);
-      int y = mapHeight - round(clockWidth * 2.3);
+      int x = mapWidth - round(clockWidth * 1.25);
+      int y = mapHeight - round(clockWidth * 1.25);
   
       // Move to where the control belongs
       translate(x + clockPadding, y - clockPadding / 2);
@@ -774,22 +800,31 @@ class LineReader implements Runnable {
         
         for (int i = 0; i < batchSize; i++) {
           
-          // Parse a new line from the file
-
-          // skip user ID and user name
-          fileScanner.next();
-          fileScanner.next();
-
-          timestamp[i] = fileScanner.nextLong();
+          try {
           
-          duration[i]  = fileScanner.nextInt();
-          distance[i]  = fileScanner.nextFloat(); // this is float now
-          speed[i]     = fileScanner.nextFloat(); // this is float now
-          
-          lat1[i] = fileScanner.nextFloat();
-          lon1[i] = fileScanner.nextFloat();
-          lat2[i] = fileScanner.nextFloat();
-          lon2[i] = fileScanner.nextFloat();
+            // Parse a new line from the file
+  
+            // skip user ID and user name
+            fileScanner.next();
+            fileScanner.next();
+  
+            timestamp[i] = fileScanner.nextLong();
+            
+            duration[i]  = fileScanner.nextInt();
+            distance[i]  = fileScanner.nextFloat(); // this is float now
+            speed[i]     = fileScanner.nextFloat(); // this is float now
+            
+            lat1[i] = fileScanner.nextFloat();
+            lon1[i] = fileScanner.nextFloat();
+            lat2[i] = fileScanner.nextFloat();
+            lon2[i] = fileScanner.nextFloat();
+            
+          } catch (Exception e) {
+            
+            println("Exception on parsing token: " + fileScanner.next());
+            
+            i--;
+          }
 
           // skip to next line
           fileScanner.nextLine();
